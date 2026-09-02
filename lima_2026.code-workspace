@@ -1,0 +1,33 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "mcp": {
+      "servers": {
+        "mcp-playground": {
+          "type": "stdio",
+          "command": "npx",
+          "args": [
+            "-y",
+            "@dynatrace-oss/dynatrace-mcp-server@latest"
+          ],
+          "env": {
+            "DT_ENVIRONMENT": "https://playground.apps.dynatrace.com"
+          }
+        }
+      }
+    },
+    "chat.mcp.serverSampling": {
+      "lima_2026.code-workspace: mcp-playground": {
+        "allowedModels": [
+          "agent-host-copilotcli:auto",
+          "copilotcli/auto"
+        ]
+      }
+    },
+    "chat.mcp.access": "all"
+  }
+}
