@@ -1,0 +1,8 @@
+{
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "features": {},
+  "postCreateCommand": "curl -fsSL https://raw.githubusercontent.com/dynatrace-oss/dtctl/main/install.sh | sh",
+  "remoteEnv": {
+    "PATH": "${containerEnv:PATH}:/home/codespace/.local/bin"
+  }
+}
