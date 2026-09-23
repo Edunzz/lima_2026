@@ -49,44 +49,18 @@
 
 /* ── Modo oscuro ───────────────────────────────────────────────────────────
    Los mismos tokens con otros valores: ninguna regla de abajo necesita saber
-   en qué tema está. Se aplica por preferencia del sistema y, si la persona
-   elige a mano, gana el atributo data-theme del <html>.
+   en qué tema está. El modo CLARO es el de por defecto; el oscuro se activa
+   solo si la persona lo elige (y entonces se recuerda).
+   `color-scheme` va por tema y no por sistema: si no, con el sistema en
+   oscuro el navegador pinta barras de scroll y casillas oscuras encima de
+   una página clara.
    Los acentos se aclaran (sobre fondo oscuro hace falta más luminancia) y el
    texto que va ENCIMA de un acento pasa a ser oscuro, para mantener AA.     */
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:            #101319;
-    --surface:       #181C23;
-    --surface-alt:   #212630;
-    --border:        #2C323C;
-    --border-strong: #3E4654;
-
-    --text:          #E7EAF0;
-    --text-muted:    #A0AAB8;
-    --text-inverse:  #0D1117;
-
-    --accent:        #4EAEFF;
-    --accent-hover:  #7AC4FF;
-    --accent-soft:   #13273A;
-    --success:       #3FD07A;
-    --success-soft:  #12301F;
-    --purple:        #A97BEA;
-    --code-bg:       #0D1117;
-
-    --accent-strong: #4EAEFF;
-    --success-strong:#3FD07A;
-    --accent-press:  #8FD0FF;
-    --success-press: #6FE3A0;
-    --code-inline:   #9ECBFF;
-    --danger-border: #5C2B2B;
-    --danger-bg:     #2A1618;
-
-    --shadow-sm: 0 1px 2px rgba(0,0,0,.45);
-    --shadow-md: 0 4px 14px rgba(0,0,0,.55);
-  }
-}
+:root{ color-scheme: light; }
 
 :root[data-theme="dark"]{
+  color-scheme: dark;
+
   --bg:            #101319;
   --surface:       #181C23;
   --surface-alt:   #212630;
@@ -210,7 +184,7 @@ body{
   user-select:none;
 }
 .switch input{ accent-color:var(--accent-strong); width:15px; height:15px; cursor:pointer; }
-.switch__icon{ font-size:12px; line-height:1; }
+.switch__icon{ width:14px; height:14px; opacity:.85; }
 /* Según falta sitio, se van cediendo elementos secundarios ANTES que recortar
    el título del lab; lo último que se pierde es información que no se repite
    en ningún otro lado. */
@@ -270,6 +244,12 @@ body{
   border-color:var(--border-strong); padding:7px 12px; font-size:13px;
 }
 .btn__icon{ font-size:13px; line-height:1; }
+
+/* Iconos de la interfaz: SVG monocromo que hereda el color del texto. */
+.icon{ flex:0 0 auto; display:block; width:16px; height:16px; }
+.icon--sol{ display:none; }
+:root[data-theme="dark"] .icon--luna{ display:none; }
+:root[data-theme="dark"] .icon--sol{ display:block; }
 
 /* ── Layout 62 / 38 ─────────────────────────────────────────────────────── */
 
@@ -428,9 +408,12 @@ body.is-resizing iframe{ pointer-events:none; }
   display:grid; place-items:center;
   transition:background .15s ease, transform .15s ease;
 }
-.node__dot::after{
-  content:"▶";
-  color:var(--text-inverse); font-size:17px; line-height:1; margin-left:3px;
+.node__dot::after{          /* triángulo de «play», dibujado con bordes */
+  content:"";
+  width:0; height:0; margin-left:4px;
+  border-left:13px solid var(--text-inverse);
+  border-top:8px solid transparent;
+  border-bottom:8px solid transparent;
 }
 .node--start:hover .node__dot{ background:var(--success-press); transform:scale(1.06); }
 
@@ -616,7 +599,7 @@ body.is-resizing iframe{ pointer-events:none; }
   .btn--steps{ display:inline-flex; padding:10px 14px; }
   #resetProgress{ padding:10px 12px; }
   #resetProgress .btn__text{ display:none; }
-  #resetProgress .btn__icon{ font-size:16px; }
+  #resetProgress .icon{ width:17px; height:17px; }
   body.flow-open .btn--steps{ background:var(--accent-strong); color:var(--text-inverse); border-color:var(--accent-strong); }
 
   .flow__nodes{ grid-template-columns:repeat(2, minmax(0,1fr)); gap:40px 32px; }

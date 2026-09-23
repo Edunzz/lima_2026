@@ -194,6 +194,30 @@ URL resultante: <https://edunzz.github.io/lima_2026/>
 ## Troubleshooting
 
 <details>
+<summary><b>El codespace falla con «no space left on device»</b></summary>
+
+Ocurre al combinar una imagen base muy pesada con `features` en
+`devcontainer.json`: obliga a reconstruir la imagen dentro del disco del
+codespace y el disco se agota extrayendo las capas. Este repositorio usa
+`devcontainers/base:ubuntu-22.04` justamente para evitarlo.
+
+Si te ocurre: **elimina** el codespace (no uses *Rebuild*, el disco ya está
+lleno) y crea uno nuevo. Si persiste, en **Change options** elige un tipo de
+máquina con más núcleos, que incluye más almacenamiento.
+</details>
+
+<details>
+<summary><b>Abrí el codespace pero no existe <code>dtctl</code></b></summary>
+
+Probablemente estés en un *recovery container*: cuando la creación falla,
+Codespaces levanta un contenedor mínimo que **no ejecuta** `postCreateCommand`,
+así que no tiene ni `dtctl` ni las skills `dt-*`.
+
+Comprueba con `Ctrl+Shift+P` → *Codespaces: View Creation Log*. Si ves
+`Creating recovery container`, elimina ese codespace y crea uno nuevo.
+</details>
+
+<details>
 <summary><b><code>dtctl: command not found</code></b></summary>
 
 El instalador deja el binario en `~/.local/bin`. Abre una terminal nueva o ejecuta:

@@ -34,7 +34,6 @@ const el = {
   resetProgress: $('resetProgress'),
   topbarLinks: $('topbarLinks'),
   themeToggle: $('themeToggle'),
-  themeIcon: $('themeIcon'),
   themeLabel: $('themeLabel'),
   flowToggle: $('flowToggle'),
   flowToggleLabel: $('flowToggleLabel'),
@@ -200,45 +199,38 @@ function renderTopbarLinks(links) {
 }
 
 // ───────────────────────────── Modo claro / oscuro ───────────────────────
+//
+// El modo claro es el de por defecto. El oscuro es una elección explícita que
+// se recuerda en el navegador; el icono (luna/sol) lo decide el CSS a partir
+// de data-theme, aquí solo se mantiene el texto accesible al día.
 
-const prefiereOscuro = window.matchMedia('(prefers-color-scheme: dark)');
-
-/** El tema que se está viendo ahora mismo: el elegido, o el del sistema. */
 function temaActual() {
-  const elegido = document.documentElement.getAttribute('data-theme');
-  if (elegido === 'dark' || elegido === 'light') return elegido;
-  return prefiereOscuro.matches ? 'dark' : 'light';
+  return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
 }
 
 function pintarBotonTema() {
   const oscuro = temaActual() === 'dark';
   const texto = oscuro ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro';
-  el.themeIcon.textContent = oscuro ? '☀️' : '🌙';
   el.themeLabel.textContent = texto;
   el.themeToggle.title = texto;
   el.themeToggle.setAttribute('aria-pressed', String(oscuro));
 }
 
-function aplicarTema(tema, { persist = true } = {}) {
+function aplicarTema(tema) {
   document.documentElement.setAttribute('data-theme', tema);
-  if (persist) {
-    try {
-      localStorage.setItem(THEME_KEY, tema);
-    } catch {
-      /* sin persistencia: el tema dura lo que la pestaña */
-    }
+  try {
+    localStorage.setItem(THEME_KEY, tema);
+  } catch {
+    /* sin persistencia: el tema dura lo que la pestaña */
   }
   pintarBotonTema();
 }
 
 function initTema() {
+  // El <head> ya aplicó el tema guardado antes de pintar; si no había nada,
+  // el documento se queda en claro.
+  if (temaActual() !== 'dark') document.documentElement.setAttribute('data-theme', 'light');
   pintarBotonTema();
-  // Si no se ha elegido nada a mano, se sigue al sistema en caliente.
-  const alCambiarElSistema = () => {
-    if (!document.documentElement.hasAttribute('data-theme')) pintarBotonTema();
-  };
-  if (prefiereOscuro.addEventListener) prefiereOscuro.addEventListener('change', alCambiarElSistema);
-  else if (prefiereOscuro.addListener) prefiereOscuro.addListener(alCambiarElSistema);
 }
 
 // ──────────── Flujo desplegable (solo en pantallas pequeñas) ─────────────

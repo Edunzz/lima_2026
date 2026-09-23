@@ -97,13 +97,15 @@ echo "  skills: $SKILL_COUNT skill(s) dt-* en .github/skills"
 echo "  tenant: $TENANT/"
 echo "  guía  : python3 -m http.server 8000 --directory docs   → http://localhost:8000"
 
+echo ""
 if [ "${#FAILURES[@]}" -gt 0 ]; then
-  echo ""
   err "El entorno se creó, pero con ${#FAILURES[@]} problema(s):"
   for f in "${FAILURES[@]}"; do echo "   - $f"; done
   echo ""
   echo "  El Codespace es usable: puedes reintentar la instalación ejecutando"
   echo "  de nuevo:  bash .devcontainer/postCreate.sh"
+else
+  ok "Entorno listo."
 fi
 
 echo ""
