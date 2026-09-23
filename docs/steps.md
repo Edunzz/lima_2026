@@ -7,7 +7,7 @@ Estos enlaces se muestran en la barra superior y se abren en una pestaña nueva.
 El que va en **negrita** se resalta en ámbar.
 
 - **[Dynatrace Playground](https://playground.apps.dynatrace.com/)**
-- [Repositorio del lab](https://github.com/Edunzz/lima_2026)
+- [Repositorio del lab]({{repo_url}})
 - [Documentación de dtctl](https://dynatrace-oss.github.io/dtctl)
 
 ## Antes de empezar
@@ -17,7 +17,7 @@ El que va en **negrita** se resalta en ámbar.
 
 | Dato | Valor |
 |---|---|
-| Repositorio | `https://github.com/Edunzz/lima_2026` |
+| Repositorio | `{{repo_url}}` |
 | Tenant de Dynatrace | `https://playground.apps.dynatrace.com` |
 | Herramientas | GitHub Codespaces, VS Code, GitHub Copilot (plan Free o superior), dtctl, Dynatrace Agent Skills (`dt-*`) |
 
@@ -30,7 +30,7 @@ En este laboratorio vas a levantar un entorno de desarrollo en la nube, conectar
 **Objetivo:** ubicar el repositorio base del laboratorio.
 
 1. Inicia sesión en [GitHub](https://github.com).
-2. Abre el repositorio: `https://github.com/Edunzz/lima_2026`.
+2. Abre el repositorio: `{{repo_url}}`.
 3. Opcional pero recomendado: haz **Fork** para trabajar sobre tu propia copia.
 4. Revisa rápidamente el `README.md` para ubicarte.
 
@@ -51,8 +51,8 @@ En este laboratorio vas a levantar un entorno de desarrollo en la nube, conectar
 **Alternativa local:**
 
 ```bash
-git clone https://github.com/Edunzz/lima_2026.git
-cd lima_2026
+git clone {{repo_clone_url}}
+cd {{repo_name}}
 code .   # luego: "Reopen in Container"
 ```
 

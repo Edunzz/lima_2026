@@ -9,8 +9,11 @@
 import { parseSteps } from './parser.js';
 import { Flow } from './flow.js';
 import * as progress from './progress.js';
+import { resolveRepo, applyRepoTokens } from './repo.js';
 
-const REPO_URL = 'https://github.com/Edunzz/lima_2026';
+// Repositorio de referencia cuando la URL no lo revela (por ejemplo en local).
+// Un fork puede fijar el suyo con la línea `repo: usuario/nombre` en steps.md.
+const REPO_FALLBACK = 'Edunzz/lima_2026';
 const STEPS_URL = './steps.md';
 const POLL_MS = 5000;
 const AUTORELOAD_KEY = 'lima2026:autoreload:v1';
@@ -49,6 +52,8 @@ const el = {
 
 /** @type {{title:string,start:object|null,links:Array,preamble:string,sections:Array}} */
 let doc = { title: '', start: null, links: [], preamble: '', sections: [] };
+/** Repositorio al que apunta esta copia de la guía (ver repo.js). */
+let repo = resolveRepo('', location, REPO_FALLBACK);
 let activeId = null;
 let signature = null;
 let pollTimer = null;
@@ -56,7 +61,7 @@ let pollTimer = null;
 const flow = new Flow({
   nodesEl: el.flowNodes,
   svgEl: el.flowLinks,
-  repoUrl: REPO_URL,
+  repoUrl: repo.url,
   onSelect: (id) => {
     goTo(id, { push: true });
     // En móvil, elegir un paso cierra el desplegable y lleva al contenido.
@@ -437,6 +442,17 @@ async function fetchSteps() {
   return { text, signature: tag ? 'meta:' + tag : 'hash:' + fingerprint(text) };
 }
 
+/**
+ * Resuelve a qué repositorio pertenece esta copia y sustituye los marcadores
+ * ({{repo_url}}, {{owner}}…) del markdown por los valores reales. Así un fork
+ * muestra SUS enlaces sin tocar una línea de código.
+ */
+function expandTokens(text) {
+  repo = resolveRepo(text, location, REPO_FALLBACK);
+  flow.repoUrl = repo.url;
+  return applyRepoTokens(text, repo);
+}
+
 async function load({ keepActive = null } = {}) {
   if (location.protocol === 'file:') {
     renderError(
@@ -449,7 +465,7 @@ async function load({ keepActive = null } = {}) {
   try {
     const fetched = await fetchSteps();
     signature = fetched.signature;
-    renderDoc(parseSteps(fetched.text), { keepActive });
+    renderDoc(parseSteps(expandTokens(fetched.text)), { keepActive });
   } catch (err) {
     renderError(
       'No se pudo leer <code>steps.md</code>. Si abriste el archivo directamente, ' +
@@ -474,7 +490,7 @@ async function pollOnce() {
   }
   if (signature === null || fetched.signature === signature) return;
   signature = fetched.signature;
-  renderDoc(parseSteps(fetched.text), { keepActive: activeId });
+  renderDoc(parseSteps(expandTokens(fetched.text)), { keepActive: activeId });
 }
 
 function setAutoReload(enabled, { persist = true } = {}) {

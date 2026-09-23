@@ -100,6 +100,7 @@ No hay que tocar HTML ni JavaScript.
 ```markdown
 # {título del laboratorio}
 inicio: {texto de la bolita verde de inicio}   ← línea OPCIONAL
+repo: usuario/repositorio                      ← línea OPCIONAL
 
 ## Links                                       ← sección OPCIONAL y RESERVADA
 - **[Enlace destacado](https://…)**
@@ -126,6 +127,55 @@ Detalles útiles:
 - **En móvil y tablet** manda el contenido del paso: el flujo se pliega tras el
   botón **☰ Pasos** de la barra superior, y los botones Anterior / Completado /
   Siguiente quedan fijos abajo.
+
+### Marcadores: el repositorio se escribe solo
+
+No escribas la URL del repositorio a mano en `steps.md`. Usa marcadores y la
+guía los sustituye por los del repositorio que la está sirviendo, de modo que
+**un fork muestra sus propias URLs sin tocar una línea de código**:
+
+| Marcador | Se convierte en |
+|---|---|
+| `{{repo_url}}` | `https://github.com/usuario/repo` |
+| `{{repo_clone_url}}` | `https://github.com/usuario/repo.git` |
+| `{{repo}}` | `usuario/repo` |
+| `{{owner}}` | `usuario` |
+| `{{repo_name}}` | `repo` |
+| `{{pages_url}}` | `https://usuario.github.io/repo/` |
+| `{{codespaces_url}}` | `https://codespaces.new/usuario/repo?quickstart=1` |
+
+```markdown
+git clone {{repo_clone_url}}
+cd {{repo_name}}
+```
+
+¿De dónde saca el repositorio? Por este orden:
+
+1. La línea **`repo: usuario/repositorio`** de `steps.md`, si está.
+2. **La propia URL**, cuando se sirve desde GitHub Pages
+   (`https://maria.github.io/mi-lab/` → `maria/mi-lab`). Es lo que hace que un
+   fork funcione solo.
+3. El valor por defecto de `docs/assets/js/app.js`, que solo se usa en local o
+   en Codespaces, donde la URL no dice de quién es el repositorio.
+
+## Si haces un fork
+
+1. **Fork** del repositorio.
+2. **Settings → Pages → Source: GitHub Actions** (y activa Actions si el fork
+   te lo pide). Tu guía quedará en `https://<tu-usuario>.github.io/<tu-repo>/`.
+3. Edita `docs/steps.md` a tu gusto: **tu** Pages sirve **tu** contenido, porque
+   la web lee `steps.md` con una ruta relativa.
+4. Opcional, para que también el `README.md` y el `AGENTS.md` apunten a tu
+   repositorio (GitHub los renderiza estáticos y no pueden sustituir nada en
+   caliente):
+
+   ```bash
+   bash scripts/usar-mi-fork.sh          # deduce tu repo del remoto «origin»
+   bash scripts/usar-mi-fork.sh tu/repo  # o se lo indicas tú
+   ```
+
+   Reescribe README, AGENTS y el valor por defecto, y fija la línea `repo:` en
+   `steps.md`. Es idempotente y no toca el contenido del laboratorio.
 - Imágenes: déjalas en `docs/assets/img/` y referencia
   `![alt](./assets/img/mi-captura.png)`. Se ven en grande al hacer clic.
 - El progreso de cada persona se guarda en su navegador (`localStorage`).

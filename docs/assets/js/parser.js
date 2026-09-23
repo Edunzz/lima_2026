@@ -9,8 +9,8 @@
  *
  * Reglas implementadas:
  *  1. El primer H1 es el título del lab.
- *  2. Si la primera línea no vacía tras el H1 empieza por `inicio:` (sin importar
- *     mayúsculas ni espacios), su texto es la etiqueta del nodo de inicio.
+ *  2. Tras el H1 se leen los metadatos opcionales `inicio:` (etiqueta del nodo
+ *     verde) y `repo:` (usuario/repo al que apuntan los enlaces).
  *  3. Cada H2 abre una sección = un nodo del flujo.
  *  4. Los encabezados H3+ quedan dentro del contenido de su sección.
  *  5. Los `#`/`##` dentro de un bloque de código se ignoran (pre-escaneo de fences).
@@ -87,7 +87,7 @@ function trimBlankLines(lines) {
 
 /**
  * @param {string} markdown contenido de steps.md
- * @returns {{title:string, start:{label:string}|null,
+ * @returns {{title:string, start:{label:string}|null, repo:string|null,
  *            links:Array<{label:string,url:string,highlight:boolean}>,
  *            preamble:string,
  *            sections:Array<{id:string,title:string,body:string}>}}
@@ -115,17 +115,25 @@ export function parseSteps(markdown) {
     }
   }
 
-  // ── 2. Línea `inicio:` (opcional, primera no vacía tras el H1) ───────────
+  // ── 2. Metadatos de cabecera: `inicio:` y `repo:` (ambos opcionales) ─────
+  // Se leen solo si vienen pegados al H1: en cuanto aparece contenido normal,
+  // se deja de buscar (así un «inicio:» a mitad del texto no cuenta).
   let start = null;
+  let repo = null;
   for (let i = cursor; i < lines.length; i++) {
-    if (lines[i].trim() === '') continue;
-    if (isH2(i)) break;
-    const m = masked[i] ? null : lines[i].match(/^\s*inicio\s*:\s*(.*)$/i);
-    if (m && m[1].trim() !== '') {
-      start = { label: m[1].trim() };
+    if (lines[i].trim() === '') {
       cursor = i + 1;
+      continue;
     }
-    break;                          // solo se evalúa la primera línea no vacía
+    if (masked[i] || isH2(i)) break;
+    const m = lines[i].match(/^\s*(inicio|repo)\s*:\s*(.*)$/i);
+    if (!m) break;
+
+    const key = m[1].toLowerCase();
+    const value = m[2].trim();
+    if (key === 'inicio' && value) start = { label: value };
+    if (key === 'repo' && /^[\w.-]+\/[\w.-]+$/.test(value)) repo = value;
+    cursor = i + 1;
   }
 
   // ── 3. Secciones (un H2 = un nodo) ───────────────────────────────────────
@@ -174,6 +182,7 @@ export function parseSteps(markdown) {
   return {
     title,
     start,
+    repo,
     links,
     preamble,
     sections: sections.map((s) => ({ id: s.id, title: s.title, body: trimBlankLines(s.bodyLines) })),

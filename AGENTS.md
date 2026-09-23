@@ -137,6 +137,7 @@ añadir o cambiar pasos. La gramática es:
 ```markdown
 # {título del laboratorio}
 inicio: {texto de la bolita verde inicial}   ← línea OPCIONAL
+repo: usuario/repositorio                    ← línea OPCIONAL
 
 ## Links                                      ← sección OPCIONAL y RESERVADA
 - **[Dynatrace Playground](https://playground.apps.dynatrace.com/)**
@@ -153,6 +154,11 @@ inicio: {texto de la bolita verde inicial}   ← línea OPCIONAL
 - Los `##` dentro de un bloque de código se ignoran.
 - Las imágenes van en `docs/assets/img/` y se referencian como
   `![alt](./assets/img/captura.png)`.
+- **Nunca escribas la URL del repositorio a mano.** Usa los marcadores
+  `{{repo_url}}`, `{{repo_clone_url}}`, `{{repo}}`, `{{owner}}`,
+  `{{repo_name}}`, `{{pages_url}}` y `{{codespaces_url}}`: la guía los
+  sustituye por los del repositorio que la sirve, así que un fork muestra sus
+  propias URLs. La línea `repo:` permite fijarlo a mano si hace falta.
 
 ## 8. Limpieza al terminar
 
