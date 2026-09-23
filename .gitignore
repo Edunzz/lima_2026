@@ -1,0 +1,10 @@
+# Skills dt-* instaladas por .devcontainer/postCreate.sh (no se versionan)
+.github/skills/
+.agents/skills/
+.claude/skills/
+skills-lock.json
+
+# Ruido habitual
+.DS_Store
+node_modules/
+__pycache__/
