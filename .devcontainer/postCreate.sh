@@ -90,82 +90,29 @@ else
   FAILURES+=("skills dt-* no instaladas — ver README > Troubleshooting > «No veo las skills dt-*»")
 fi
 
-# ── Navegador DENTRO del contenedor (login OAuth) ───────────────────────────
-# dtctl usa un redirect_uri fijo a http://localhost:3232 y no admite cambiarlo.
-# Si el SSO se abre en el navegador del asistente, ese localhost es SU máquina
-# y el callback nunca llega al listener que corre aquí dentro. Por eso el
-# navegador tiene que vivir en el contenedor: así ambos comparten localhost.
-#
-# Ojo con los paquetes: en Ubuntu 22.04 NO existe firefox-esr (es de Debian) y
-# el paquete `firefox` es un stub transicional que depende de snapd, inservible
-# en un contenedor. Se usa el repo APT oficial de Mozilla, con epiphany-browser
-# (universe, .deb de verdad) como respaldo.
-log "Instalando navegador para el login OAuth…"
+# ── Navegador para el login OAuth de dtctl ──────────────────────────────────
+# dtctl busca xdg-open / x-www-browser / www-browser en el PATH para abrir el
+# SSO. En un contenedor headless no existe ninguno, así que se instala un
+# wrapper que delega en el helper de VS Code / Codespaces: ese helper abre el
+# navegador REAL del usuario y además traduce http://localhost:<puerto> a la
+# URL reenviada, que es lo que hace que el callback vuelva solo.
+log "Configurando apertura de navegador para OAuth…"
 
+BROWSER_DIR="/usr/local/bin"
 SUDO="sudo"
 if ! command -v sudo >/dev/null 2>&1 || ! sudo -n true >/dev/null 2>&1; then
-  SUDO=""
-fi
-
-buscar_navegador() {
-  command -v firefox-esr || command -v firefox || command -v epiphany-browser || command -v chromium || true
-}
-
-NAVEGADOR="$(buscar_navegador)"
-
-if [ -z "$NAVEGADOR" ] && [ -n "$SUDO" ]; then
-  # 1. Repo oficial de Mozilla (firefox como .deb real, sin snap).
-  if curl -fsSL https://packages.mozilla.org/apt/repo-signing-key.gpg        | $SUDO tee /etc/apt/keyrings/packages.mozilla.org.asc >/dev/null 2>&1      || { $SUDO install -d -m 0755 /etc/apt/keyrings           && curl -fsSL https://packages.mozilla.org/apt/repo-signing-key.gpg              | $SUDO tee /etc/apt/keyrings/packages.mozilla.org.asc >/dev/null; }; then
-    echo "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main"       | $SUDO tee /etc/apt/sources.list.d/mozilla.list >/dev/null
-    # Sin este pin, apt seguiría prefiriendo el stub de snap de Ubuntu.
-    printf 'Package: *
-Pin: origin packages.mozilla.org
-Pin-Priority: 1000
-'       | $SUDO tee /etc/apt/preferences.d/mozilla >/dev/null
-    $SUDO apt-get update -qq >/dev/null 2>&1
-    $SUDO DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends firefox >/dev/null 2>&1       || warn "No se pudo instalar firefox desde el repo de Mozilla."
-  fi
-  NAVEGADOR="$(buscar_navegador)"
-
-  # 2. Respaldo: navegador de Ubuntu universe, sin repos de terceros.
-  if [ -z "$NAVEGADOR" ]; then
-    warn "Probando con epiphany-browser…"
-    $SUDO apt-get update -qq >/dev/null 2>&1
-    $SUDO DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends epiphany-browser >/dev/null 2>&1       || warn "Tampoco se pudo instalar epiphany-browser."
-    NAVEGADOR="$(buscar_navegador)"
-  fi
-fi
-
-if [ -n "$NAVEGADOR" ]; then
-  ok "Navegador interno: $NAVEGADOR"
-else
-  err "Sin navegador dentro del contenedor."
-  FAILURES+=("navegador interno no instalado — el login OAuth necesitará pasos manuales (ver Paso 4 de la guía)")
-fi
-
-# ── xdg-open: los tres nombres que busca dtctl ──────────────────────────────
-BROWSER_DIR="/usr/local/bin"
-if [ -z "$SUDO" ]; then
+  # Sin sudo (rootless o ejecución fuera del codespace): al PATH del usuario,
+  # que ya se añadió más arriba.
   BROWSER_DIR="$HOME/.local/bin"
+  SUDO=""
   mkdir -p "$BROWSER_DIR"
 fi
 
-# Primera parte SIN comillas en EOF: interesa que NAVEGADOR quede fijado.
-$SUDO tee "$BROWSER_DIR/xdg-open" >/dev/null <<EOF
+$SUDO tee "$BROWSER_DIR/xdg-open" >/dev/null <<'EOF'
 #!/usr/bin/env bash
-NAVEGADOR="$NAVEGADOR"
-EOF
-
-# Segunda parte con 'EOF' entre comillas: se escribe tal cual.
-$SUDO tee -a "$BROWSER_DIR/xdg-open" >/dev/null <<'EOF'
-# 1) Navegador del contenedor: es el único que comparte localhost con el
-#    listener de dtctl, así que el callback de OAuth se cierra solo.
-if [ -n "$NAVEGADOR" ] && [ -x "$NAVEGADOR" ]; then
-  exec "$NAVEGADOR" "$1"
-fi
-
-# 2) Sin navegador interno: se delega en el helper de VS Code, que abre el
-#    navegador del usuario. Sirve para enlaces normales, no para el callback.
+# Abre una URL en el navegador del usuario delegando en los helpers de
+# VS Code / Codespaces, que además traducen http://localhost:<puerto> a la
+# URL reenviada; eso es lo que hace que el callback de OAuth vuelva solo.
 candidatos=()
 [ -n "${BROWSER:-}" ] && candidatos+=("$BROWSER")
 for helper in /vscode/bin/*/bin/helpers/browser.sh "$HOME"/.vscode-remote/bin/*/bin/helpers/browser.sh; do
@@ -174,6 +121,8 @@ done
 command -v gh >/dev/null 2>&1 && candidatos+=("$(command -v gh)")
 
 for b in ${candidatos[@]+"${candidatos[@]}"}; do
+  # $BROWSER puede venir como «ruta --flag»: se valida solo el ejecutable y
+  # luego se deja sin comillas para que los argumentos se separen.
   bin="${b%% *}"
   [ -n "$bin" ] && [ -x "$bin" ] || continue
   case "$bin" in
@@ -201,8 +150,7 @@ fi
 log "Resumen del entorno"
 echo "  dtctl : $(command -v dtctl || echo 'NO DISPONIBLE')"
 echo "  skills: $SKILL_COUNT skill(s) dt-* en .github/skills"
-echo "  navegador: ${NAVEGADOR:-NO DISPONIBLE}  (dentro del contenedor)"
-echo "  escritorio: puerto 6080 — contraseña: vscode"
+echo "  navegador: $(command -v xdg-open || echo 'NO DISPONIBLE') (abre el SSO)"
 echo "  tenant: $TENANT/"
 echo "  guía  : python3 -m http.server 8000 --directory docs   → http://localhost:8000"
 
@@ -218,11 +166,13 @@ else
 fi
 
 echo ""
-echo "Siguiente paso — el login necesita el navegador DE DENTRO del contenedor:"
-echo "  1. Pestaña PORTS → puerto 6080 «Escritorio» → abrir en el navegador."
-echo "  2. Connect, contraseña: vscode"
-echo "  3. En el escritorio: clic derecho → Terminal, y ahí:"
-echo "     dtctl auth login --context lab --environment $TENANT --timeout 10m"
+echo "Siguiente paso:"
+echo "  dtctl auth login --context lab --environment $TENANT --timeout 10m"
+echo ""
+echo "  Si usas el Codespace EN EL NAVEGADOR, al volver del SSO caerás en una"
+echo "  página de error en http://localhost:3232/... Es lo esperado: cambia solo"
+echo "  el host por el del puerto 3232 de la pestaña PORTS y pulsa Enter."
+echo "  Con VS Code de escritorio no hace falta: el login se cierra solo."
 echo ""
 
 exit 0

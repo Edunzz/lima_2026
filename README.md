@@ -218,36 +218,24 @@ Comprueba con `Ctrl+Shift+P` → *Codespaces: View Creation Log*. Si ves
 </details>
 
 <details>
-<summary><b>El escritorio (puerto 6080) no aparece en la pestaña Ports</b></summary>
+<summary><b>El login de <code>dtctl</code> se queda colgado en <code>localhost:3232</code></b></summary>
 
-Espera a que termine el `postCreate` (instala el escritorio y el navegador).
-Si sigue sin aparecer, revisa `Ctrl+Shift+P` → *Codespaces: View Creation Log* y
-confirma que la feature `desktop-lite` se instaló. En último caso, recrea el
-codespace.
-</details>
+`dtctl` completa el login OAuth con un *redirect* fijo a `http://localhost:3232`,
+que no se puede configurar (no existe ningún flag `--redirect-uri` ni
+`--callback-port`).
 
-<details>
-<summary><b>El escritorio pide contraseña</b></summary>
+- **Con VS Code de escritorio** funciona sin hacer nada: los puertos reenviados
+  del Codespace se abren en el `localhost` real de tu equipo.
+- **Con el Codespace en el navegador**, ese `localhost` es **tu máquina**, no el
+  contenedor, así que la respuesta del SSO no llega. Solución: en la URL de error
+  cambia el host `localhost:3232` por el del puerto **3232** de la pestaña
+  **PORTS** (`<TU-CODESPACE>-3232.app.github.dev`) y pulsa Enter. El resto de la
+  URL no se toca.
 
-Es `vscode`, definida en `.devcontainer/devcontainer.json`.
-</details>
-
-<details>
-<summary><b>El navegador no abre dentro del escritorio</b></summary>
-
-Desde la terminal del escritorio, prueba el navegador directamente:
-
-```bash
-firefox https://example.com || epiphany-browser https://example.com
-```
-
-Si falla, comprueba `echo $DISPLAY` (debe ser `:1`) y qué navegador quedó
-instalado: el resumen de `postCreate.sh` lo indica en la línea `navegador:`.
-
-> En Ubuntu 22.04 **no existe** `firefox-esr` y el paquete `firefox` de Ubuntu
-> es solo un stub que depende de snapd, que no funciona en un contenedor. Por
-> eso `postCreate.sh` instala Firefox desde el repositorio APT oficial de
-> Mozilla, con `epiphany-browser` como respaldo.
+Alternativas: un túnel desde tu equipo con
+`gh codespace ports forward 3232:3232`, o completar el callback con
+`curl -s "<URL>"` desde una segunda terminal del Codespace. Está todo detallado
+en el Paso 4 de la guía.
 </details>
 
 <details>
@@ -271,8 +259,12 @@ o recrea el codespace para que tome la configuración nueva.
 
 `postCreate.sh` instala un wrapper de `xdg-open` (y de `x-www-browser` y
 `www-browser`, los tres nombres que busca `dtctl`) que delega en el helper de
-VS Code. Ese helper abre el navegador real y traduce `http://localhost:<puerto>`
-a la URL reenviada, que es lo que permite que el callback de OAuth vuelva solo.
+VS Code para abrir el enlace en tu navegador.
+
+> Ese wrapper solo se encarga de **abrir** la página de SSO. **No** hace que el
+> callback vuelva: el redirect a `localhost:3232` lo dispara Dynatrace dentro de
+> tu navegador, así que apunta a tu máquina. Eso se resuelve como se explica en
+> el Paso 4 de la guía.
 
 Compruébalo con:
 

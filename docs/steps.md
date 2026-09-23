@@ -103,33 +103,35 @@ Lista todas las skills disponibles en este workspace cuyo nombre empiece por "dt
 
 > 📘 Referencia: [Documentación de dtctl](https://dynatrace-oss.github.io/dtctl) · [Repositorio dtctl](https://github.com/dynatrace-oss/dtctl)
 
-### 4.1 Login con OAuth (desde el escritorio del Codespace)
+### 4.1 Login con OAuth
 
-> El login de Dynatrace necesita un navegador que esté **dentro** del Codespace.
-> Tu Codespace ya incluye uno.
+Lanza el login:
 
-1. En VS Code, abre la pestaña **PORTS** (junto a la terminal).
-2. Busca el puerto **6080 — Escritorio** y haz clic en el icono del globo
-   (*Open in Browser*). Se abrirá una pestaña nueva.
-<!-- Captura: descomenta cuando añadas la imagen a docs/assets/img/
-![Puerto 6080 en la pestaña Ports](./assets/img/paso4-puerto-6080.png) -->
-3. Pulsa **Connect** y escribe la contraseña: `vscode`.
-<!-- Captura: descomenta cuando añadas la imagen a docs/assets/img/
-![Pantalla de conexión del escritorio](./assets/img/paso4-connect.png) -->
-4. Ya dentro del escritorio, **clic derecho sobre el fondo → Terminal**.
-<!-- Captura: descomenta cuando añadas la imagen a docs/assets/img/
-![Abrir una terminal en el escritorio](./assets/img/paso4-terminal.png) -->
-5. En esa terminal ejecuta:
+```bash
+dtctl auth login --context lab --environment "https://playground.apps.dynatrace.com" --timeout 10m
+```
 
-   ```bash
-   dtctl auth login --context lab --environment "https://playground.apps.dynatrace.com" --timeout 10m
-   ```
+Se abrirá una pestaña en tu navegador. Inicia sesión con tu usuario de Dynatrace
+y autoriza el acceso.
 
-6. Se abrirá el navegador dentro del escritorio. Inicia sesión con tu usuario de
-   Dynatrace y autoriza el acceso.
-7. Al terminar verás la confirmación en la terminal del escritorio. **Listo.**
+**Lo que pasa después depende de cómo abriste el Codespace:**
 
-Vuelve a VS Code y valida la sesión:
+**Si usas VS Code de escritorio** — el login se cierra solo. Pasa al siguiente bloque.
+
+**Si usas el Codespace en el navegador** — al volver del SSO caerás en una página
+de error en `http://localhost:3232/auth/login?...`. **Es lo esperado**, y se
+arregla en un paso:
+
+1. Copia esa URL completa de la barra de direcciones.
+2. Sustituye **solo el host** `localhost:3232` por el de tu Codespace:
+   `<TU-CODESPACE>-3232.app.github.dev`. El resto (`/auth/login?state=…&code=…`)
+   no se toca. Lo tienes en la pestaña **PORTS**, puerto **3232**.
+3. Pulsa Enter. La terminal confirmará el login.
+
+Por ejemplo, `http://localhost:3232/auth/login?state=abc&code=xyz` pasa a ser
+`https://fluffy-space-guide-abc123-3232.app.github.dev/auth/login?state=abc&code=xyz`.
+
+Valida la sesión:
 
 ```bash
 dtctl auth whoami
@@ -139,22 +141,44 @@ dtctl doctor
 **Resultado esperado:** `whoami` muestra tu usuario y el tenant; `doctor` ya no
 reporta errores de autenticación.
 
-> A partir de aquí ya puedes cerrar la pestaña del escritorio y trabajar
-> normalmente desde la terminal de VS Code. El token queda guardado.
-
 <details>
-<summary><b>¿Por qué hace falta el escritorio? (y qué hacer si no arranca)</b></summary>
+<summary><b>¿Por qué hace falta ese cambio de host?</b></summary>
 
 `dtctl` completa el login con un *redirect* fijo a `http://localhost:3232`, que
-no se puede cambiar. Si el SSO se abre en el navegador de tu equipo, ese
-`localhost` es **tu máquina**, no el Codespace, y la respuesta nunca llega al
-proceso que está esperando dentro del contenedor.
+no se puede configurar. Cuando trabajas con el Codespace **en el navegador**, ese
+`localhost` es **tu máquina**, no el contenedor, así que la respuesta del SSO no
+llega al proceso que está esperando dentro del Codespace.
 
-Si el escritorio no arranca, puedes cerrar el login a mano: al terminar el SSO
-llegarás a una página en blanco o con error en `http://localhost:3232/...`.
-Reemplaza **solo el host** por `<TU-CODESPACE>-3232.app.github.dev` y pulsa
-Enter; el resto de la URL (`/auth/login?state=...&code=...`) no se toca.
-Requiere que el puerto 3232 esté reenviado en la pestaña **PORTS**.
+Cambiar el host por la URL reenviada del puerto 3232 hace que la respuesta entre
+al contenedor, que es donde `dtctl` está escuchando.
+
+Con **VS Code de escritorio** no hace falta porque ahí los puertos reenviados sí
+se abren en el `localhost` real de tu equipo, y el redirect llega solo.
+
+</details>
+
+<details>
+<summary><b>Alternativas si prefieres no tocar la URL</b></summary>
+
+**Opción A — túnel desde tu equipo** (requiere [GitHub CLI](https://cli.github.com/)
+instalado en tu máquina). En una terminal **local**, no la del Codespace:
+
+```bash
+gh codespace ports forward 3232:3232
+```
+
+Déjala abierta y repite el login: el redirect a `localhost:3232` entrará por el
+túnel y se cerrará solo.
+
+**Opción B — completar el callback desde el propio Codespace.** Copia la URL de
+`localhost:3232` que te quedó en el navegador, abre una **segunda terminal** en
+el Codespace y ejecuta:
+
+```bash
+curl -s "PEGA_AQUI_LA_URL"
+```
+
+La primera terminal completará el login.
 
 </details>
 
