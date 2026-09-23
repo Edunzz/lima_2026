@@ -79,22 +79,6 @@ bórralo al terminar.
 | **GitHub Copilot (modo Agente)** | El agente que ejecuta `dtctl` por ti a partir de prompts en español. | Panel de Copilot → selector de modo → **Agent** |
 | **VS Code Web** | Editor completo en el navegador, con terminal. | Se abre solo con el Codespace |
 
-## Por qué la creación del Codespace es rápida
-
-El `devcontainer.json` **no declara `features`** a propósito. Declararlas obliga
-a construir una imagen derivada dentro del disco del codespace, que es lo que
-hacía la creación lenta (y lo que antes agotaba el disco).
-
-La imagen base `devcontainers/base:ubuntu-22.04` ya trae `git`, `curl` y `wget`,
-que es todo lo que necesita `postCreate.sh`. El laboratorio en sí solo usa
-**dtctl**, las **skills `dt-*`** y **Copilot**: ni Node, ni Python, ni `gh`
-intervienen en ningún paso.
-
-> ¿Aún más rápido? Activa un **prebuild** en
-> **Settings → Codespaces → Set up prebuild**. GitHub deja el entorno
-> preconstruido y la creación baja a unos segundos. Recomendable si vas a correr
-> el lab con mucha gente a la vez.
-
 ## Estructura del repositorio
 
 ```
