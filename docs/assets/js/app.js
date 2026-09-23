@@ -326,7 +326,7 @@ function sectionIndex(id) {
   return doc.sections.findIndex((s) => s.id === id);
 }
 
-function goTo(id, { push = false, scroll = true } = {}) {
+function goTo(id, { push = false, scroll = true, hash = true } = {}) {
   if (!doc.sections.length) return;
   const idx = Math.max(0, sectionIndex(id));
   const section = doc.sections[idx];
@@ -349,10 +349,14 @@ function goTo(id, { push = false, scroll = true } = {}) {
   updateProgress();
 
   // La URL siempre refleja lo que se está viendo (también tras editar steps.md).
-  const hash = '#' + section.id;
-  if (location.hash !== hash) {
-    if (push) history.pushState({ id: section.id }, '', hash);
-    else history.replaceState({ id: section.id }, '', hash);
+  // Con hash:false se deja la URL en la raíz, sin ancla — es lo que hace
+  // «Reiniciar», que devuelve la guía a su estado de recién abierta.
+  if (hash) {
+    const target = '#' + section.id;
+    if (location.hash !== target) {
+      if (push) history.pushState({ id: section.id }, '', target);
+      else history.replaceState({ id: section.id }, '', target);
+    }
   }
 
   if (scroll) {
@@ -548,6 +552,16 @@ el.resetProgress.addEventListener('click', () => {
   if (!confirm('¿Reiniciar el progreso del laboratorio? Se desmarcarán todos los pasos.')) return;
   progress.reset();
   doc.sections.forEach((s) => flow.setDone(s.id, false));
+
+  // Reiniciar deja la guía como recién abierta: primer paso y URL en la raíz,
+  // sin el ancla del paso donde estabas.
+  history.replaceState(null, '', location.pathname + location.search);
+  if (doc.sections.length) goTo(doc.sections[0].id, { push: false, hash: false });
+  if (isStacked()) {
+    setFlowOpen(false);
+    scrollToContent();
+  }
+
   updateCompleteBtn();
   updateProgress();
 });
