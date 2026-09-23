@@ -90,10 +90,67 @@ else
   FAILURES+=("skills dt-* no instaladas — ver README > Troubleshooting > «No veo las skills dt-*»")
 fi
 
+# ── Navegador para el login OAuth de dtctl ──────────────────────────────────
+# dtctl busca xdg-open / x-www-browser / www-browser en el PATH para abrir el
+# SSO. En un contenedor headless no existe ninguno, así que se instala un
+# wrapper que delega en el helper de VS Code / Codespaces: ese helper abre el
+# navegador REAL del usuario y además traduce http://localhost:<puerto> a la
+# URL reenviada, que es lo que hace que el callback vuelva solo.
+log "Configurando apertura de navegador para OAuth…"
+
+BROWSER_DIR="/usr/local/bin"
+SUDO="sudo"
+if ! command -v sudo >/dev/null 2>&1 || ! sudo -n true >/dev/null 2>&1; then
+  # Sin sudo (rootless o ejecución fuera del codespace): al PATH del usuario,
+  # que ya se añadió más arriba.
+  BROWSER_DIR="$HOME/.local/bin"
+  SUDO=""
+  mkdir -p "$BROWSER_DIR"
+fi
+
+$SUDO tee "$BROWSER_DIR/xdg-open" >/dev/null <<'EOF'
+#!/usr/bin/env bash
+# Abre una URL en el navegador del usuario delegando en los helpers de
+# VS Code / Codespaces, que además traducen http://localhost:<puerto> a la
+# URL reenviada; eso es lo que hace que el callback de OAuth vuelva solo.
+candidatos=()
+[ -n "${BROWSER:-}" ] && candidatos+=("$BROWSER")
+for helper in /vscode/bin/*/bin/helpers/browser.sh "$HOME"/.vscode-remote/bin/*/bin/helpers/browser.sh; do
+  [ -x "$helper" ] && candidatos+=("$helper")
+done
+command -v gh >/dev/null 2>&1 && candidatos+=("$(command -v gh)")
+
+for b in ${candidatos[@]+"${candidatos[@]}"}; do
+  # $BROWSER puede venir como «ruta --flag»: se valida solo el ejecutable y
+  # luego se deja sin comillas para que los argumentos se separen.
+  bin="${b%% *}"
+  [ -n "$bin" ] && [ -x "$bin" ] || continue
+  case "$bin" in
+    */gh) exec "$bin" browser "$1" ;;
+  esac
+  exec $b "$1"
+done
+
+echo "No se pudo abrir el navegador. Abre este enlace manualmente:"
+echo "$1"
+EOF
+
+$SUDO chmod +x "$BROWSER_DIR/xdg-open"
+$SUDO ln -sf "$BROWSER_DIR/xdg-open" "$BROWSER_DIR/x-www-browser"
+$SUDO ln -sf "$BROWSER_DIR/xdg-open" "$BROWSER_DIR/www-browser"
+
+if command -v xdg-open >/dev/null 2>&1; then
+  ok "xdg-open configurado ($BROWSER_DIR)"
+else
+  err "No se pudo instalar el wrapper de xdg-open."
+  FAILURES+=("xdg-open no configurado — el login OAuth pedirá abrir la URL a mano")
+fi
+
 # ── 3. Resumen ──────────────────────────────────────────────────────────────
 log "Resumen del entorno"
 echo "  dtctl : $(command -v dtctl || echo 'NO DISPONIBLE')"
 echo "  skills: $SKILL_COUNT skill(s) dt-* en .github/skills"
+echo "  navegador: $(command -v xdg-open || echo 'NO DISPONIBLE') (para el login OAuth)"
 echo "  tenant: $TENANT/"
 echo "  guía  : python3 -m http.server 8000 --directory docs   → http://localhost:8000"
 

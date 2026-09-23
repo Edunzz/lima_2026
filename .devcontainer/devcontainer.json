@@ -2,6 +2,17 @@
   "name": "Lab Lima 2026 — Dynatrace Agentic Observability",
   "image": "mcr.microsoft.com/devcontainers/base:ubuntu-22.04",
 
+  // dtctl guarda el token OAuth en archivo: el contenedor es headless y no
+  // tiene keyring (ni D-Bus), así que el backend por defecto falla.
+  "containerEnv": {
+    "DTCTL_TOKEN_STORAGE": "file"
+  },
+
+  // El puerto del callback OAuth es aleatorio: que se reenvíe solo y sin avisos.
+  "otherPortsAttributes": {
+    "onAutoForward": "silent"
+  },
+
   "features": {
     "ghcr.io/devcontainers/features/github-cli:1": {},
     "ghcr.io/devcontainers/features/node:1": { "version": "lts" },

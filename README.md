@@ -218,6 +218,40 @@ Comprueba con `Ctrl+Shift+P` → *Codespaces: View Creation Log*. Si ves
 </details>
 
 <details>
+<summary><b><code>dtctl auth login</code> falla con «keyring is unavailable»</b></summary>
+
+El contenedor es headless: no tiene D-Bus ni Secret Service, así que `dtctl` no
+puede guardar el token OAuth en el keyring. Este repositorio ya define
+`DTCTL_TOKEN_STORAGE=file` en `devcontainer.json`.
+
+Si tu codespace es anterior a ese cambio, ejecuta en la terminal:
+
+```bash
+export DTCTL_TOKEN_STORAGE=file
+```
+
+o recrea el codespace para que tome la configuración nueva.
+</details>
+
+<details>
+<summary><b><code>dtctl</code> no abre el navegador («xdg-open not found»)</b></summary>
+
+`postCreate.sh` instala un wrapper de `xdg-open` (y de `x-www-browser` y
+`www-browser`, los tres nombres que busca `dtctl`) que delega en el helper de
+VS Code. Ese helper abre el navegador real y traduce `http://localhost:<puerto>`
+a la URL reenviada, que es lo que permite que el callback de OAuth vuelva solo.
+
+Compruébalo con:
+
+```bash
+which xdg-open && xdg-open https://example.com
+```
+
+Si no funciona, relanza `bash .devcontainer/postCreate.sh` o usa el método
+manual descrito en el Paso 4 de la guía.
+</details>
+
+<details>
 <summary><b><code>dtctl: command not found</code></b></summary>
 
 El instalador deja el binario en `~/.local/bin`. Abre una terminal nueva o ejecuta:

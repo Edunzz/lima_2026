@@ -109,16 +109,25 @@ Lista todas las skills disponibles en este workspace cuyo nombre empiece por "dt
 dtctl auth login --context lab --environment "https://playground.apps.dynatrace.com"
 ```
 
-1. dtctl abrirá (o mostrará) un enlace para iniciar sesión en el navegador.
-2. Inicia sesión con tu usuario de Dynatrace y autoriza el acceso.
-3. Vuelve a la terminal y valida la sesión:
+Se abrirá automáticamente una pestaña en tu navegador. Inicia sesión con tu usuario
+de Dynatrace y autoriza el acceso. Al terminar, vuelve a la terminal: la sesión ya
+estará activa.
+
+Valida la sesión:
 
 ```bash
 dtctl auth whoami
 dtctl doctor
 ```
 
-**Resultado esperado:** `whoami` muestra tu usuario y el tenant; `doctor` ya no reporta errores de autenticación.
+**Resultado esperado:** `whoami` muestra tu usuario y el tenant; `doctor` ya no
+reporta errores de autenticación.
+
+> 🛟 **Si el navegador no se abre solo:** copia el enlace que imprime `dtctl` y
+> ábrelo manualmente. Al terminar el SSO verás un error de conexión en
+> `http://localhost:...` — es esperado. Copia esa URL completa de la barra de
+> direcciones, abre una **segunda terminal** y ejecuta:
+> `curl -s "PEGA_AQUI_LA_URL"`. La primera terminal completará el login.
 
 ### 4.2 Últimos 5 problemas reportados
 
