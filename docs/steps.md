@@ -316,26 +316,6 @@ Nombre del dashboard: "Lab - <NOMBRE_DEL_SERVICIO>". Cuando termines, dame el en
 
 **Resultado esperado:** un dashboard nuevo en Dynatrace con las tres secciones y su enlace.
 
-## Paso 8 — Alerta de tasa de fallos
-
-**Objetivo:** crear una alerta sobre la tasa de fallos (errores 4xx/5xx) de un endpoint específico.
-
-> **Skills involucradas:** `dt-obs-services` y `dt-alerting`.
-
-### 8.1 Elegir un endpoint
-
-```text
-Para el servicio <NOMBRE_DEL_SERVICIO>, lista sus endpoints con mayor tráfico en las últimas 24 horas, indicando número de requests y tasa de fallos (errores 4xx y 5xx). Recomiéndame uno para crear una alerta.
-```
-
-### 8.2 Crear la alerta
-
-```text
-Crea una alerta en Dynatrace con dtctl (detector de anomalías) de tipo failure rate para el endpoint <NOMBRE_DEL_ENDPOINT> del servicio <NOMBRE_DEL_SERVICIO>. Debe dispararse cuando la tasa de fallos (errores 4xx/5xx) supere el 5% durante 5 minutos. Nombre: "Lab - Failure rate <NOMBRE_DEL_ENDPOINT>". Muéstrame la configuración creada y confirma que quedó activa.
-```
-
-**Resultado esperado:** un detector de anomalías creado y activo, con la configuración visible.
-
 ## Cierre y limpieza
 
 Al finalizar el laboratorio habrás:
