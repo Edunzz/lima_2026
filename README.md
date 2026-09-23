@@ -129,6 +129,9 @@ Detalles útiles:
 - **En móvil y tablet** manda el contenido del paso: el flujo se pliega tras el
   botón **☰ Pasos** de la barra superior, y los botones Anterior / Completado /
   Siguiente quedan fijos abajo.
+- Imágenes: déjalas en `docs/assets/img/` y referencia
+  `![alt](./assets/img/mi-captura.png)`. Se ven en grande al hacer clic.
+- El progreso de cada persona se guarda en su navegador (`localStorage`).
 
 ### Marcadores: el repositorio se escribe solo
 
@@ -178,9 +181,6 @@ cd {{repo_name}}
 
    Reescribe README, AGENTS y el valor por defecto, y fija la línea `repo:` en
    `steps.md`. Es idempotente y no toca el contenido del laboratorio.
-- Imágenes: déjalas en `docs/assets/img/` y referencia
-  `![alt](./assets/img/mi-captura.png)`. Se ven en grande al hacer clic.
-- El progreso de cada persona se guarda en su navegador (`localStorage`).
 
 ## Publicación en GitHub Pages
 
