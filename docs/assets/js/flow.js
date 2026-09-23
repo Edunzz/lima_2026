@@ -46,7 +46,8 @@ export class Flow {
     this.nodeById.clear();
     this.items = [];
 
-    // Nodo de inicio (círculo verde). Solo si steps.md trae la línea `inicio:`.
+    // Nodo de inicio: bolita verde con su texto debajo. Solo si steps.md trae
+    // la línea `inicio:`.
     if (doc.start && doc.start.label) {
       const startEl = document.createElement('a');
       startEl.className = 'node node--start';
@@ -54,10 +55,16 @@ export class Flow {
       startEl.target = '_blank';
       startEl.rel = 'noopener noreferrer';
       startEl.title = 'Abrir ' + this.repoUrl;
+
+      const dot = document.createElement('span');
+      dot.className = 'node__dot';
+      dot.setAttribute('aria-hidden', 'true');
+
       const label = document.createElement('span');
       label.className = 'node__label';
       label.textContent = doc.start.label;
-      startEl.appendChild(label);
+
+      startEl.append(dot, label);
       this.nodesEl.appendChild(startEl);
       this.items.push(startEl);
     }
@@ -105,6 +112,15 @@ export class Flow {
       this.svgEl.textContent = '';
       return;
     }
+
+    // Hay que borrar la colocación anterior ANTES de medir: si no, las
+    // columnas que asignamos la última vez crean pistas implícitas y el grid
+    // se queda atascado en el número de columnas antiguo.
+    this.items.forEach((el) => {
+      el.style.gridRow = '';
+      el.style.gridColumn = '';
+    });
+
     const cols = this.columns();
 
     this.items.forEach((el, k) => {
@@ -133,8 +149,12 @@ export class Flow {
 
     svg.appendChild(this.arrowDefs());
 
+    // El conector se ancla a la bolita del nodo de inicio, no a su caja
+    // completa (que incluye el texto de debajo).
+    const anchor = (el) => el.querySelector('.node__dot') || el;
+
     const rel = (el) => {
-      const r = el.getBoundingClientRect();
+      const r = anchor(el).getBoundingClientRect();
       return {
         left: r.left - box.left,
         right: r.right - box.left,
