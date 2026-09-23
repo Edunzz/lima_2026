@@ -5,7 +5,7 @@ tenant de Dynatrace desde la terminal, investigar problemas en lenguaje natural
 con un agente de IA y generar artefactos reales: un **RCA en Notebook**, un
 **dashboard** y una **alerta de failure rate**.
 
-### 👉 [Abrir la guía del laboratorio](https://edunzz.github.io/lima_2026/)
+### [Abrir la guía del laboratorio](https://edunzz.github.io/lima_2026/)
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/Edunzz/lima_2026?quickstart=1)
 
