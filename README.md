@@ -1,4 +1,4 @@
-# Lab Lima 2026 — Observabilidad Agéntica con Dynatrace, dtctl y GitHub Copilot
+# Lab Lima 2026 / Agentic + Dynatrace, dtctl y GitHub Copilot
 
 Laboratorio práctico de **nivel principiante** (90–120 min) para conectarte al
 tenant de Dynatrace desde la terminal, investigar problemas en lenguaje natural
