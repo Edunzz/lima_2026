@@ -13,11 +13,12 @@
     "onAutoForward": "silent"
   },
 
-  "features": {
-    "ghcr.io/devcontainers/features/github-cli:1": {},
-    "ghcr.io/devcontainers/features/node:1": { "version": "lts" },
-    "ghcr.io/devcontainers/features/python:1": { "version": "3.12" }
-  },
+  // SIN features a propósito: declararlas obliga a construir una imagen
+  // derivada dentro del disco del codespace, que es lo que hacía lenta la
+  // creación. La imagen base ya trae git, curl y wget, que es todo lo que
+  // necesita postCreate.sh; y el laboratorio en sí solo usa dtctl, las skills
+  // dt-* y Copilot. Node, Python y gh no hacen falta para ningún paso.
+  "features": {},
 
   "customizations": {
     "vscode": {

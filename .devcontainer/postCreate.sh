@@ -52,34 +52,22 @@ if ! grep -qs 'HOME/.local/bin' "$HOME/.bashrc" 2>/dev/null; then
 fi
 
 # ── 2. Dynatrace Agent Skills (dt-*) ────────────────────────────────────────
+# Clonado superficial del repo oficial: ~4 MB y unos segundos. Se evita a
+# propósito «npx skills add», que exigiría instalar Node solo para esto y que
+# además copia en .agents/skills aunque se le pida el target de Copilot.
 log "Instalando Dynatrace Agent Skills (dt-*) en .github/skills…"
 mkdir -p "$SKILLS_DIR"
 
-# 2.a Método oficial: el instalador universal de Agent Skills.
-if command -v npx >/dev/null 2>&1; then
-  ( cd "$REPO_ROOT" && npx --yes skills add "$SKILLS_REPO" --skill '*' --agent github-copilot --copy --yes ) \
-    || warn "«npx skills add» devolvió error; se intentará el método manual."
-else
-  warn "npx no está disponible; se usará el método manual."
-fi
-
-# El instalador puede escribir en otra ruta de agente: si es así, consolidamos.
-if [ "$(count_skills)" -eq 0 ] && [ -d "$REPO_ROOT/.agents/skills" ]; then
-  cp -r "$REPO_ROOT"/.agents/skills/dt-* "$SKILLS_DIR"/ 2>/dev/null \
-    && ok "Skills consolidadas desde .agents/skills"
-fi
-
-# 2.b Verificación real: el instalador puede reportar éxito sin escribir nada.
 if [ "$(count_skills)" -eq 0 ]; then
-  warn "No se detectaron skills tras el método oficial. Usando clonado directo del repo…"
   TMP="$(mktemp -d)"
   if git clone --depth 1 --quiet "https://github.com/$SKILLS_REPO" "$TMP/dt-ai"; then
-    cp -r "$TMP"/dt-ai/skills/dt-* "$SKILLS_DIR"/ 2>/dev/null \
-      && ok "Skills dt-* copiadas en $SKILLS_DIR"
+    cp -r "$TMP"/dt-ai/skills/dt-* "$SKILLS_DIR"/ 2>/dev/null
   else
     err "No se pudo clonar https://github.com/$SKILLS_REPO"
   fi
   rm -rf "$TMP"
+else
+  ok "Las skills ya estaban instaladas."
 fi
 
 SKILL_COUNT="$(count_skills)"

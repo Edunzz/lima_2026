@@ -42,12 +42,20 @@ code .        # después: paleta de comandos → "Dev Containers: Reopen in Cont
 
 ## Ver la guía en local
 
+Para seguir el laboratorio no hace falta: la guía está publicada en
+<https://edunzz.github.io/lima_2026/>. Esto es para **editarla** y ver los
+cambios al momento.
+
 ```bash
 python3 -m http.server 8000 --directory docs
 ```
 
 Abre <http://localhost:8000>. En local la **auto-recarga** viene activada: edita
 `docs/steps.md`, guarda y la web se actualiza sola en unos segundos.
+
+> Dentro del Codespace, la imagen base no trae Python (se quitó para que la
+> creación sea rápida). Si lo necesitas ahí:
+> `sudo apt-get update && sudo apt-get install -y python3`.
 
 > ⚠️ No abras `docs/index.html` haciendo doble clic. Con `file://` el navegador
 > bloquea la lectura de `steps.md` y la guía no carga.
@@ -67,9 +75,25 @@ bórralo al terminar.
 | Componente | Qué es | Cómo se comprueba |
 |---|---|---|
 | **dtctl** | CLI oficial de Dynatrace: auth, consultas DQL, notebooks, dashboards y alertas. | `dtctl version` · `dtctl doctor` |
-| **Dynatrace Agent Skills (`dt-*`)** | 30+ skills que enseñan al agente a consultar Dynatrace correctamente (DQL, problemas, logs, servicios, notebooks…). | `ls .github/skills` |
+| **Dynatrace Agent Skills (`dt-*`)** | 34 skills que enseñan al agente a consultar Dynatrace correctamente (DQL, problemas, logs, servicios, notebooks…). | `ls .github/skills` |
 | **GitHub Copilot (modo Agente)** | El agente que ejecuta `dtctl` por ti a partir de prompts en español. | Panel de Copilot → selector de modo → **Agent** |
 | **VS Code Web** | Editor completo en el navegador, con terminal. | Se abre solo con el Codespace |
+
+## Por qué la creación del Codespace es rápida
+
+El `devcontainer.json` **no declara `features`** a propósito. Declararlas obliga
+a construir una imagen derivada dentro del disco del codespace, que es lo que
+hacía la creación lenta (y lo que antes agotaba el disco).
+
+La imagen base `devcontainers/base:ubuntu-22.04` ya trae `git`, `curl` y `wget`,
+que es todo lo que necesita `postCreate.sh`. El laboratorio en sí solo usa
+**dtctl**, las **skills `dt-*`** y **Copilot**: ni Node, ni Python, ni `gh`
+intervienen en ningún paso.
+
+> ¿Aún más rápido? Activa un **prebuild** en
+> **Settings → Codespaces → Set up prebuild**. GitHub deja el entorno
+> preconstruido y la creación baja a unos segundos. Recomendable si vas a correr
+> el lab con mucha gente a la vez.
 
 ## Estructura del repositorio
 
@@ -308,9 +332,8 @@ Si está vacío, relanza la instalación completa (es idempotente):
 bash .devcontainer/postCreate.sh
 ```
 
-El script intenta primero el instalador oficial y, si no escribe nada, clona el
-repositorio de skills directamente. Si ambos fallan (sin red, por ejemplo),
-hazlo a mano:
+El script clona el repositorio oficial de skills (unos 4 MB, clonado
+superficial). Si falla —por ejemplo sin red— hazlo a mano:
 
 ```bash
 git clone --depth 1 https://github.com/Dynatrace/dynatrace-for-ai /tmp/dt-ai

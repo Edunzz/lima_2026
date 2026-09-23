@@ -105,31 +105,40 @@ Lista todas las skills disponibles en este workspace cuyo nombre empiece por "dt
 
 ### 4.1 Login con OAuth
 
-Lanza el login:
+El login se hace **desde tu navegador**, y se completa con un copiar‑pegar entre
+dos terminales del Codespace. Son 6 pasos y no hay que instalar nada.
+
+**1.** En la terminal de VS Code (la llamaremos **terminal 1**), lanza el login:
 
 ```bash
 dtctl auth login --context lab --environment "https://playground.apps.dynatrace.com" --timeout 10m
 ```
 
-Se abrirá una pestaña en tu navegador. Inicia sesión con tu usuario de Dynatrace
-y autoriza el acceso.
+**2.** Se abrirá una pestaña en tu navegador con el SSO de Dynatrace. Inicia
+sesión y autoriza el acceso. *(Si no se abre sola, copia el enlace que imprime
+la terminal 1 y pégalo en el navegador.)*
 
-**Lo que pasa después depende de cómo abriste el Codespace:**
+**3.** Al terminar el SSO, el navegador se quedará en una página de **error** o
+en blanco, con una dirección parecida a esta:
 
-**Si usas VS Code de escritorio** — el login se cierra solo. Pasa al siguiente bloque.
+```text
+http://localhost:3232/auth/login?state=OYWhKUVD...&code=abc123...
+```
 
-**Si usas el Codespace en el navegador** — al volver del SSO caerás en una página
-de error en `http://localhost:3232/auth/login?...`. **Es lo esperado**, y se
-arregla en un paso:
+> Es lo esperado. Ese `localhost` es **tu equipo**, no el Codespace, así que la
+> respuesta no llega sola. La reenviamos nosotros en el paso siguiente.
 
-1. Copia esa URL completa de la barra de direcciones.
-2. Sustituye **solo el host** `localhost:3232` por el de tu Codespace:
-   `<TU-CODESPACE>-3232.app.github.dev`. El resto (`/auth/login?state=…&code=…`)
-   no se toca. Lo tienes en la pestaña **PORTS**, puerto **3232**.
-3. Pulsa Enter. La terminal confirmará el login.
+**4.** **Copia esa URL completa** de la barra de direcciones del navegador.
 
-Por ejemplo, `http://localhost:3232/auth/login?state=abc&code=xyz` pasa a ser
-`https://fluffy-space-guide-abc123-3232.app.github.dev/auth/login?state=abc&code=xyz`.
+**5.** Abre una **segunda terminal** en VS Code (menú **☰ → Terminal → New
+Terminal**, o el icono `+` del panel de terminales). Deja la terminal 1 como
+está, esperando. En la **terminal 2** ejecuta, pegando la URL entre comillas:
+
+```bash
+curl -s "PEGA_AQUI_LA_URL"
+```
+
+**6.** Vuelve a la **terminal 1**: el login ya se habrá completado.
 
 Valida la sesión:
 
@@ -142,43 +151,39 @@ dtctl doctor
 reporta errores de autenticación.
 
 <details>
-<summary><b>¿Por qué hace falta ese cambio de host?</b></summary>
+<summary><b>¿Por qué hace falta el paso del <code>curl</code>?</b></summary>
 
 `dtctl` completa el login con un *redirect* fijo a `http://localhost:3232`, que
-no se puede configurar. Cuando trabajas con el Codespace **en el navegador**, ese
-`localhost` es **tu máquina**, no el contenedor, así que la respuesta del SSO no
-llega al proceso que está esperando dentro del Codespace.
+no se puede configurar. Mientras esperas en la terminal 1, `dtctl` tiene un
+proceso escuchando en ese puerto **dentro del Codespace**.
 
-Cambiar el host por la URL reenviada del puerto 3232 hace que la respuesta entre
-al contenedor, que es donde `dtctl` está escuchando.
-
-Con **VS Code de escritorio** no hace falta porque ahí los puertos reenviados sí
-se abren en el `localhost` real de tu equipo, y el redirect llega solo.
+El problema es que el redirect lo ejecuta tu navegador, en **tu** máquina, así
+que busca un `localhost:3232` que allí no existe. El `curl` de la terminal 2 se
+ejecuta dentro del Codespace, donde ese puerto **sí** responde: le entrega el
+código de autorización al proceso que estaba esperando, y el login se cierra.
 
 </details>
 
 <details>
-<summary><b>Alternativas si prefieres no tocar la URL</b></summary>
+<summary><b>Alternativas (opcionales)</b></summary>
 
-**Opción A — túnel desde tu equipo** (requiere [GitHub CLI](https://cli.github.com/)
-instalado en tu máquina). En una terminal **local**, no la del Codespace:
+**Si usas VS Code de escritorio** en vez del navegador, no necesitas nada de
+esto: ahí los puertos reenviados del Codespace se abren en el `localhost` real
+de tu equipo y el login se cierra solo en el paso 2.
+
+**Cambiando el host en el navegador**, sin segunda terminal: en la URL del
+paso 3, sustituye `localhost:3232` por el host del puerto **3232** que aparece
+en la pestaña **PORTS** (`<TU-CODESPACE>-3232.app.github.dev`) y pulsa Enter. El
+resto de la URL no se toca.
+
+**Con un túnel desde tu equipo** (requiere [GitHub CLI](https://cli.github.com/)
+instalado en tu máquina). En una terminal **local**:
 
 ```bash
 gh codespace ports forward 3232:3232
 ```
 
-Déjala abierta y repite el login: el redirect a `localhost:3232` entrará por el
-túnel y se cerrará solo.
-
-**Opción B — completar el callback desde el propio Codespace.** Copia la URL de
-`localhost:3232` que te quedó en el navegador, abre una **segunda terminal** en
-el Codespace y ejecuta:
-
-```bash
-curl -s "PEGA_AQUI_LA_URL"
-```
-
-La primera terminal completará el login.
+Déjala abierta y repite el login: se cerrará solo.
 
 </details>
 
