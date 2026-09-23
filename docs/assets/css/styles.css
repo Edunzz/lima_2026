@@ -473,6 +473,25 @@ body.is-resizing iframe{ pointer-events:none; }
 }
 .markdown-body blockquote p{ margin:4px 0; }
 
+/* Bloques plegables (<details>) escritos en steps.md */
+.markdown-body details{
+  margin:14px 0; padding:10px 14px;
+  border:1px solid var(--border); border-radius:var(--radius);
+  background:var(--surface-alt);
+}
+.markdown-body summary{
+  cursor:pointer; font-weight:600; color:var(--text);
+  list-style:none; display:flex; align-items:center; gap:8px;
+}
+.markdown-body summary::-webkit-details-marker{ display:none; }
+.markdown-body summary::before{
+  content:"›"; font-size:16px; line-height:1; color:var(--text-muted);
+  transition:transform .15s ease;
+}
+.markdown-body details[open] > summary::before{ transform:rotate(90deg); }
+.markdown-body details[open] > summary{ margin-bottom:8px; }
+.markdown-body details > *:last-child{ margin-bottom:0; }
+
 .table-wrap{ overflow-x:auto; margin:14px 0; }
 .markdown-body table{
   border-collapse:collapse; width:100%; font-size:13.5px;

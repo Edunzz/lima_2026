@@ -5,7 +5,10 @@
   // dtctl guarda el token OAuth en archivo: el contenedor es headless y no
   // tiene keyring (ni D-Bus), así que el backend por defecto falla.
   "containerEnv": {
-    "DTCTL_TOKEN_STORAGE": "file"
+    "DTCTL_TOKEN_STORAGE": "file",
+    // Para que las apps gráficas lanzadas desde la terminal salgan en el
+    // escritorio del puerto 6080.
+    "DISPLAY": ":1"
   },
 
   // El puerto del callback OAuth es aleatorio: que se reenvíe solo y sin avisos.
@@ -16,7 +19,15 @@
   "features": {
     "ghcr.io/devcontainers/features/github-cli:1": {},
     "ghcr.io/devcontainers/features/node:1": { "version": "lts" },
-    "ghcr.io/devcontainers/features/python:1": { "version": "3.12" }
+    "ghcr.io/devcontainers/features/python:1": { "version": "3.12" },
+    // Escritorio ligero (fluxbox + X11 + noVNC). El login OAuth de dtctl usa
+    // un redirect_uri fijo a http://localhost:3232, así que el navegador tiene
+    // que vivir DENTRO del contenedor para compartir ese localhost.
+    "ghcr.io/devcontainers/features/desktop-lite:1": {
+      "password": "vscode",
+      "webPort": "6080",
+      "vncPort": "5901"
+    }
   },
 
   "customizations": {
@@ -36,8 +47,10 @@
 
   "postCreateCommand": "bash .devcontainer/postCreate.sh",
 
-  "forwardPorts": [8000],
+  "forwardPorts": [8000, 6080],
   "portsAttributes": {
-    "8000": { "label": "Guía del Lab (steps.md)", "onAutoForward": "openPreview" }
+    "8000": { "label": "Guía del Lab (steps.md)", "onAutoForward": "openPreview" },
+    "6080": { "label": "🖥️ Escritorio (navegador para login)", "onAutoForward": "notify" },
+    "5901": { "label": "VNC", "onAutoForward": "ignore" }
   }
 }

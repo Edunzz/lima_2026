@@ -218,6 +218,39 @@ Comprueba con `Ctrl+Shift+P` → *Codespaces: View Creation Log*. Si ves
 </details>
 
 <details>
+<summary><b>El escritorio (puerto 6080) no aparece en la pestaña Ports</b></summary>
+
+Espera a que termine el `postCreate` (instala el escritorio y el navegador).
+Si sigue sin aparecer, revisa `Ctrl+Shift+P` → *Codespaces: View Creation Log* y
+confirma que la feature `desktop-lite` se instaló. En último caso, recrea el
+codespace.
+</details>
+
+<details>
+<summary><b>El escritorio pide contraseña</b></summary>
+
+Es `vscode`, definida en `.devcontainer/devcontainer.json`.
+</details>
+
+<details>
+<summary><b>El navegador no abre dentro del escritorio</b></summary>
+
+Desde la terminal del escritorio, prueba el navegador directamente:
+
+```bash
+firefox https://example.com || epiphany-browser https://example.com
+```
+
+Si falla, comprueba `echo $DISPLAY` (debe ser `:1`) y qué navegador quedó
+instalado: el resumen de `postCreate.sh` lo indica en la línea `navegador:`.
+
+> En Ubuntu 22.04 **no existe** `firefox-esr` y el paquete `firefox` de Ubuntu
+> es solo un stub que depende de snapd, que no funciona en un contenedor. Por
+> eso `postCreate.sh` instala Firefox desde el repositorio APT oficial de
+> Mozilla, con `epiphany-browser` como respaldo.
+</details>
+
+<details>
 <summary><b><code>dtctl auth login</code> falla con «keyring is unavailable»</b></summary>
 
 El contenedor es headless: no tiene D-Bus ni Secret Service, así que `dtctl` no
