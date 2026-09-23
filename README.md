@@ -123,6 +123,9 @@ Detalles útiles:
 - La línea divisoria entre los dos paneles se arrastra con el ratón para dar más
   espacio al flujo o al contenido; doble clic la devuelve a su sitio y el ancho
   elegido se recuerda.
+- **En móvil y tablet** manda el contenido del paso: el flujo se pliega tras el
+  botón **☰ Pasos** de la barra superior, y los botones Anterior / Completado /
+  Siguiente quedan fijos abajo.
 - Imágenes: déjalas en `docs/assets/img/` y referencia
   `![alt](./assets/img/mi-captura.png)`. Se ven en grande al hacer clic.
 - El progreso de cada persona se guarda en su navegador (`localStorage`).

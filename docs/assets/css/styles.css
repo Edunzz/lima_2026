@@ -152,6 +152,14 @@ body{
 .btn--ghost{ background:transparent; color:var(--text-muted); border-color:var(--border); font-weight:500; padding:7px 12px; }
 .btn--ghost:hover{ background:var(--surface-alt); color:var(--text); }
 
+/* Abre el flujo de pasos; solo existe en pantallas pequeñas. */
+.btn--steps{
+  display:none; align-items:center; gap:6px;
+  background:var(--surface); color:var(--text);
+  border-color:var(--border-strong); padding:7px 12px; font-size:13px;
+}
+.btn__icon{ font-size:13px; line-height:1; }
+
 /* ── Layout 62 / 38 ─────────────────────────────────────────────────────── */
 
 .layout{
@@ -161,7 +169,7 @@ body{
 }
 
 .flow{
-  min-height:0; overflow:auto;
+  min-width:0; min-height:0; overflow:auto;
   padding:28px 24px 48px;
   container-type:inline-size;   /* permite adaptar el flujo al ancho del panel */
 }
@@ -194,14 +202,14 @@ body.is-resizing iframe{ pointer-events:none; }
 /* El panel no scrollea entero: solo su cuerpo. Así el pie de navegación
    nunca queda flotando por encima del contenido. */
 .panel{
-  min-height:0; overflow:hidden;
+  min-width:0; min-height:0; overflow:hidden;
   background:var(--surface);
   border-left:1px solid var(--border);
   display:flex; flex-direction:column;
 }
 
 .panel__body{
-  flex:1 1 auto; min-height:0; overflow-y:auto;
+  flex:1 1 auto; min-width:0; min-height:0; overflow-y:auto;
   padding:26px 28px 22px;
 }
 
@@ -398,7 +406,7 @@ body.is-resizing iframe{ pointer-events:none; }
   word-break:break-word;
 }
 
-.codeblock{ position:relative; margin:14px 0; }
+.codeblock{ position:relative; min-width:0; margin:14px 0; }
 .codeblock pre{
   margin:0; padding:14px 16px;
   background:var(--code-bg); color:#E6E9EF;
@@ -460,32 +468,94 @@ body.is-resizing iframe{ pointer-events:none; }
 
 /* ── Responsive ─────────────────────────────────────────────────────────── */
 
+/* ──────────────────────────────────────────────────────────────────────────
+   Móvil / tablet en vertical.
+
+   En una pantalla pequeña el flujo completo ocupaba más de dos pantallas y
+   empujaba el contenido fuera de la vista. Aquí se invierte el planteamiento:
+   manda el CONTENIDO del paso, y el flujo pasa a ser un desplegable («Pasos»)
+   que se abre solo cuando hace falta navegar.
+   ────────────────────────────────────────────────────────────────────────── */
 @media (max-width:1024px){
-  body{ overflow:auto; height:auto; min-height:100%; }
-  .layout{ grid-template-columns:1fr; }
+  /* Hueco para el pie fijo: lo mide app.js (--footer-h), porque su alto
+     cambia con el ancho de pantalla y el texto de los botones. */
+  body{ overflow:auto; height:auto; min-height:100%; padding-bottom:calc(var(--footer-h, 62px) + 8px); }
+
+  .topbar{ position:sticky; top:0; z-index:30; flex-wrap:wrap; row-gap:6px; }
+
+  /* minmax(0,1fr) y NO 1fr: con `1fr` la columna no puede encoger por debajo
+     de su contenido mínimo, así que una línea larga dentro de un bloque de
+     código ensanchaba el layout y el navegador móvil alejaba el zoom de toda
+     la página. Con minmax(0,…) el <pre> vuelve a hacer su scroll horizontal. */
+  .layout{ grid-template-columns:minmax(0,1fr); }
   .splitter{ display:none; }
+
+  .panel{ order:1; border-left:0; }
+  .flow{ order:2; border-top:1px solid var(--border); background:var(--surface-alt); }
+
   .flow,.panel,.panel__body{ overflow:visible; min-height:0; }
-  .panel{ border-left:0; border-top:1px solid var(--border); }
+
+  /* El flujo solo se muestra al pulsar «Pasos». */
+  .flow{ display:none; }
+  body.flow-open .flow{ display:block; }
+
+  /* Zonas táctiles cómodas en cualquier pantalla apilada (móvil y tablet). */
+  .btn--steps{ display:inline-flex; padding:10px 14px; }
+  #resetProgress{ padding:10px 12px; }
+  body.flow-open .btn--steps{ background:var(--accent-strong); color:var(--text-inverse); border-color:var(--accent-strong); }
+
   .flow__nodes{ grid-template-columns:repeat(2, minmax(0,1fr)); gap:40px 32px; }
-  .topbar{ flex-wrap:wrap; }
-  /* Con la página scrolleando entera, el pie se ancla abajo del viewport. */
-  .panel__footer{ position:sticky; bottom:0; }
+
+  /* El pie de navegación queda siempre a mano, sin tapar el final del texto. */
+  .panel__footer{
+    position:fixed; left:0; right:0; bottom:0; z-index:20;
+    box-shadow:0 -4px 16px rgba(22,24,29,.12);
+  }
 }
 
 @media (max-width:640px){
-  .flow{ padding:20px 16px 32px; }
-  .panel__body{ padding:20px 16px; }
-  .panel__footer{ padding:10px 16px; }
-  .flow__nodes{ grid-template-columns:minmax(0,1fr); gap:34px; }
-  .node__dot{ width:52px; height:52px; }
-  .topbar{ padding:8px 14px; gap:10px; }
-  .topbar__title{ width:100%; }
-  .topbar__right{ width:100%; justify-content:space-between; gap:8px; }
-  .chip{ font-size:11px; padding:3px 8px; }
-  .progress{ width:80px; }
-  .switch span{ display:none; }
-  .panel__footer{ flex-wrap:wrap; }
-  .panel__footer .btn{ flex:1 1 auto; }
+  .flow{ padding:18px 14px 26px; }
+  .panel__body{ padding:18px 16px 22px; }
+  .panel__footer{ padding:9px 12px; gap:8px; }
+  .flow__nodes{ grid-template-columns:minmax(0,1fr); gap:26px; }
+  .node{ padding:12px 14px 22px; min-height:0; }
+  .node.is-active{ padding-left:20px; }
+  .node__dot{ width:48px; height:48px; }
+  .node--start{ gap:8px; }
+
+  .topbar{ padding:7px 12px; gap:8px; }
+  .topbar__title{ width:100%; font-size:13.5px; gap:6px; }
+  #labTitle{ display:none; }              /* en el móvil manda el paso actual */
+  .topbar__title .sep{ display:none; }
+  #sectionTitle{ color:var(--text); font-weight:700; min-width:0; }
+
+  .topbar__right{ width:100%; gap:8px; flex-wrap:wrap; }
+  /* Los enlaces del markdown en una sola fila deslizable, sin romper la barra. */
+  .topbar__links{
+    order:3; width:100%;
+    flex-wrap:nowrap; overflow-x:auto; gap:6px;
+    padding-bottom:2px;
+    scrollbar-width:none;
+  }
+  .topbar__links::-webkit-scrollbar{ display:none; }
+  .chip{ font-size:11.5px; padding:4px 9px; flex:0 0 auto; }
+
+  .progress{ flex:1 1 auto; width:auto; min-width:60px; }
+  .switch{ display:none; }                /* la auto-recarga es cosa del escritorio */
+
+  .panel__title{ font-size:19px; }
+  .markdown-body{ font-size:14.5px; }
+  .panel__footer .btn{ flex:1 1 auto; padding:10px 8px; font-size:13.5px; }
+  .panel__footer .btn--secondary{ flex:0 0 auto; min-width:44px; }
+}
+
+/* En pantallas táctiles el :hover se queda «pegado» tras tocar. */
+@media (hover:none){
+  .node:hover{ border-color:var(--border); box-shadow:var(--shadow-sm); transform:none; }
+  .node.is-active:hover{ border-color:var(--accent); }
+  .node--start:hover .node__dot{ background:var(--success-strong); transform:none; }
+  .chip:hover{ background:var(--surface-alt); border-color:var(--border-strong); color:var(--text); }
+  .chip--highlight:hover{ background:var(--warning); border-color:#DB9012; color:#3B2A05; }
 }
 
 /* Al arrastrar el divisor el panel del flujo puede quedar estrecho aunque la

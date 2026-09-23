@@ -29,6 +29,8 @@ const el = {
   autoReload: $('autoReload'),
   resetProgress: $('resetProgress'),
   topbarLinks: $('topbarLinks'),
+  flowToggle: $('flowToggle'),
+  flowToggleLabel: $('flowToggleLabel'),
   flowNodes: $('flowNodes'),
   flowLinks: $('flowLinks'),
   layout: document.querySelector('.layout'),
@@ -55,7 +57,14 @@ const flow = new Flow({
   nodesEl: el.flowNodes,
   svgEl: el.flowLinks,
   repoUrl: REPO_URL,
-  onSelect: (id) => goTo(id, { push: true }),
+  onSelect: (id) => {
+    goTo(id, { push: true });
+    // En móvil, elegir un paso cierra el desplegable y lleva al contenido.
+    if (isStacked()) {
+      setFlowOpen(false);
+      scrollToContent();
+    }
+  },
 });
 
 // ───────────────────────────── Markdown ──────────────────────────────────
@@ -181,6 +190,43 @@ function renderTopbarLinks(links) {
   });
 }
 
+// ──────────── Flujo desplegable (solo en pantallas pequeñas) ─────────────
+
+/** ¿Estamos en el layout apilado, donde el flujo se despliega bajo demanda? */
+function isStacked() {
+  return window.matchMedia('(max-width: 1024px)').matches;
+}
+
+/**
+ * En móvil el pie va fijo abajo, así que la página necesita reservar ese hueco.
+ * Se mide el pie real en lugar de fijar un número: su alto cambia según el
+ * ancho de pantalla y la longitud del texto de los botones.
+ */
+function syncFooterSpace() {
+  const h = el.panelFooter.hidden ? 0 : Math.ceil(el.panelFooter.getBoundingClientRect().height);
+  document.documentElement.style.setProperty('--footer-h', h + 'px');
+}
+
+/**
+ * Lleva la vista al principio del paso. Se sube del todo en lugar de hacer
+ * scrollIntoView sobre el panel: la barra superior es sticky y taparía las
+ * primeras líneas del contenido.
+ */
+function scrollToContent() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function setFlowOpen(open) {
+  document.body.classList.toggle('flow-open', open);
+  el.flowToggle.setAttribute('aria-expanded', String(open));
+  el.flowToggleLabel.textContent = open ? 'Cerrar' : 'Pasos';
+  if (open) {
+    // El flujo estaba oculto: hay que medirlo de nuevo para los conectores.
+    flow.relayout();
+    flow.scrollIntoView(activeId);
+  }
+}
+
 // ───────────────────────────── Divisor arrastrable ───────────────────────
 
 function applySplit(pct, { persist = true } = {}) {
@@ -290,6 +336,7 @@ function goTo(id, { push = false, scroll = true } = {}) {
 
   flow.setActive(section.id);
   flow.scrollIntoView(section.id);
+  syncFooterSpace();
 
   el.prevBtn.disabled = idx === 0;
   el.nextBtn.disabled = idx === doc.sections.length - 1;
@@ -303,7 +350,11 @@ function goTo(id, { push = false, scroll = true } = {}) {
     else history.replaceState({ id: section.id }, '', hash);
   }
 
-  if (scroll) el.panelBody.scrollTop = 0;
+  if (scroll) {
+    el.panelBody.scrollTop = 0;
+    // En el layout apilado el que scrollea es la página, no el panel.
+    if (push && isStacked()) scrollToContent();
+  }
 }
 
 function updateCompleteBtn() {
@@ -487,6 +538,14 @@ el.resetProgress.addEventListener('click', () => {
 
 el.autoReload.addEventListener('change', () => setAutoReload(el.autoReload.checked));
 
+el.flowToggle.addEventListener('click', () =>
+  setFlowOpen(!document.body.classList.contains('flow-open')));
+
+// Si se vuelve al layout de escritorio, el flujo deja de estar «desplegado».
+window.matchMedia('(max-width: 1024px)').addEventListener('change', (ev) => {
+  if (!ev.matches) setFlowOpen(false);
+});
+
 window.addEventListener('popstate', () => {
   const id = decodeURIComponent((location.hash || '').replace(/^#/, ''));
   if (id && sectionIndex(id) >= 0) goTo(id, { push: false });
@@ -510,4 +569,7 @@ el.lightbox.addEventListener('click', closeLightbox);
 // ───────────────────────────── Arranque ──────────────────────────────────
 
 initSplitter();
+syncFooterSpace();
+window.addEventListener('resize', syncFooterSpace, { passive: true });
+if ('ResizeObserver' in window) new ResizeObserver(syncFooterSpace).observe(el.panelFooter);
 load().then(() => setAutoReload(autoReloadDefault(), { persist: false }));
