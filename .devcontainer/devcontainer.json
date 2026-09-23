@@ -1,8 +1,32 @@
 {
-  "image": "mcr.microsoft.com/devcontainers/universal:2",
-  "features": {},
-  "postCreateCommand": "curl -fsSL https://raw.githubusercontent.com/dynatrace-oss/dtctl/main/install.sh | sh",
+  "name": "Lab Lima 2026 — Dynatrace Agentic Observability",
+  "image": "mcr.microsoft.com/devcontainers/universal:2-linux",
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/node:1": { "version": "lts" },
+    "ghcr.io/devcontainers/features/python:1": { "version": "3.12" }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "yzhang.markdown-all-in-one",
+        "ms-vscode.live-server"
+      ],
+      "settings": {
+        "chat.agent.enabled": true,
+        "github.copilot.chat.codeGeneration.useInstructionFiles": true,
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  },
+  "postCreateCommand": "bash .devcontainer/postCreate.sh",
   "remoteEnv": {
     "PATH": "${containerEnv:PATH}:/home/codespace/.local/bin"
-  }
+  },
+  "portsAttributes": {
+    "8000": { "label": "Guía del Lab (steps.md)", "onAutoForward": "openPreview" }
+  },
+  "forwardPorts": [8000]
 }
