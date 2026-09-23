@@ -30,6 +30,11 @@
      no alcanzan 4.5:1 con texto blanco, estas sí (contraste AA). */
   --accent-strong:  #0B6CBF;
   --success-strong: #00823A;
+  --accent-press:   #095A9E;   /* :active/:hover de los botones de acento */
+  --success-press:  #046C31;
+  --code-inline:    #0F2C4D;   /* texto de `código` en línea */
+  --danger-border:  #F2C2C2;
+  --danger-bg:      #FDECEC;
 
   /* Tipografía y forma */
   --font: "Segoe UI", "Open Sans", system-ui, -apple-system, sans-serif;
@@ -40,6 +45,76 @@
   --shadow-md: 0 4px 14px rgba(22,24,29,.10);
 
   --topbar-h: 56px;
+}
+
+/* ── Modo oscuro ───────────────────────────────────────────────────────────
+   Los mismos tokens con otros valores: ninguna regla de abajo necesita saber
+   en qué tema está. Se aplica por preferencia del sistema y, si la persona
+   elige a mano, gana el atributo data-theme del <html>.
+   Los acentos se aclaran (sobre fondo oscuro hace falta más luminancia) y el
+   texto que va ENCIMA de un acento pasa a ser oscuro, para mantener AA.     */
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:            #101319;
+    --surface:       #181C23;
+    --surface-alt:   #212630;
+    --border:        #2C323C;
+    --border-strong: #3E4654;
+
+    --text:          #E7EAF0;
+    --text-muted:    #A0AAB8;
+    --text-inverse:  #0D1117;
+
+    --accent:        #4EAEFF;
+    --accent-hover:  #7AC4FF;
+    --accent-soft:   #13273A;
+    --success:       #3FD07A;
+    --success-soft:  #12301F;
+    --purple:        #A97BEA;
+    --code-bg:       #0D1117;
+
+    --accent-strong: #4EAEFF;
+    --success-strong:#3FD07A;
+    --accent-press:  #8FD0FF;
+    --success-press: #6FE3A0;
+    --code-inline:   #9ECBFF;
+    --danger-border: #5C2B2B;
+    --danger-bg:     #2A1618;
+
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.45);
+    --shadow-md: 0 4px 14px rgba(0,0,0,.55);
+  }
+}
+
+:root[data-theme="dark"]{
+  --bg:            #101319;
+  --surface:       #181C23;
+  --surface-alt:   #212630;
+  --border:        #2C323C;
+  --border-strong: #3E4654;
+
+  --text:          #E7EAF0;
+  --text-muted:    #A0AAB8;
+  --text-inverse:  #0D1117;
+
+  --accent:        #4EAEFF;
+  --accent-hover:  #7AC4FF;
+  --accent-soft:   #13273A;
+  --success:       #3FD07A;
+  --success-soft:  #12301F;
+  --purple:        #A97BEA;
+  --code-bg:       #0D1117;
+
+  --accent-strong: #4EAEFF;
+  --success-strong:#3FD07A;
+  --accent-press:  #8FD0FF;
+  --success-press: #6FE3A0;
+  --code-inline:   #9ECBFF;
+  --danger-border: #5C2B2B;
+  --danger-bg:     #2A1618;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.45);
+  --shadow-md: 0 4px 14px rgba(0,0,0,.55);
 }
 
 *,*::before,*::after{ box-sizing:border-box; }
@@ -74,7 +149,8 @@ body{
 .topbar{
   flex:0 0 auto;
   min-height:var(--topbar-h);
-  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  display:flex; align-items:center; justify-content:space-between;
+  flex-wrap:wrap; gap:8px 16px;
   padding:8px 20px;
   background:var(--surface);
   border-bottom:1px solid var(--border);
@@ -87,14 +163,18 @@ body{
   min-width:0;
 }
 .topbar__title{ flex:1 1 auto; }
-.topbar__title > span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-/* Si falta espacio, se recorta antes el título del lab que el del paso actual. */
-#labTitle{ flex:0 1 auto; min-width:6ch; }
-#sectionTitle{ flex:1 1 auto; min-width:16ch; }
+/* El título del lab NUNCA se recorta: si no cabe todo en una fila, es la
+   barra la que se reparte en dos (flex-wrap). El que cede es el título de la
+   sección activa, que además se repite como encabezado del panel derecho. */
+#labTitle{ flex:0 0 auto; white-space:nowrap; overflow:visible; }
+#sectionTitle{
+  flex:0 1 auto; min-width:0;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
 .topbar__title .sep{ color:var(--border-strong); flex:0 0 auto; }
 .topbar__title .muted{ font-weight:400; }
 
-.topbar__right{ display:flex; align-items:center; gap:12px; flex:0 0 auto; }
+.topbar__right{ display:flex; align-items:center; gap:10px; flex:0 0 auto; margin-left:auto; }
 
 /* Enlaces declarados en la sección `## Links` de steps.md */
 .topbar__links{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
@@ -114,7 +194,7 @@ body{
 .chip--highlight:hover{ background:#E5991A; border-color:#C07F0C; color:#3B2A05; }
 
 .progress{
-  width:120px; height:8px; border-radius:999px;
+  width:96px; height:8px; border-radius:999px;
   background:var(--surface-alt); border:1px solid var(--border);
   overflow:hidden;
 }
@@ -130,6 +210,33 @@ body{
   user-select:none;
 }
 .switch input{ accent-color:var(--accent-strong); width:15px; height:15px; cursor:pointer; }
+.switch__icon{ font-size:12px; line-height:1; }
+/* Según falta sitio, se van cediendo elementos secundarios ANTES que recortar
+   el título del lab; lo último que se pierde es información que no se repite
+   en ningún otro lado. */
+@media (max-width:1600px){ .switch__text{ display:none; } }
+@media (max-width:1500px){
+  /* El paso activo ya se ve como encabezado del panel y como «Estás aquí». */
+  #sectionTitle, .topbar__title .sep{ display:none; }
+  .topbar{ padding:8px 16px; gap:8px 12px; }
+  .topbar__links{ gap:6px; }
+}
+
+/* Botón cuadrado de solo icono (cambio de tema). */
+.btn--icon{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:34px; height:34px; padding:0;
+  background:transparent; color:var(--text);
+  border-color:var(--border); font-size:15px;
+}
+.btn--icon:hover{ background:var(--surface-alt); border-color:var(--border-strong); }
+.btn--icon .btn__icon{ font-size:15px; }
+
+/* Accesible para lectores de pantalla, invisible en pantalla. */
+.sr-only{
+  position:absolute; width:1px; height:1px; margin:-1px; padding:0;
+  overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;
+}
 
 /* ── Botones ────────────────────────────────────────────────────────────── */
 
@@ -142,14 +249,18 @@ body{
 .btn:disabled{ opacity:.45; cursor:not-allowed; }
 
 .btn--primary{ background:var(--accent-strong); color:var(--text-inverse); }
-.btn--primary:hover:not(:disabled){ background:#095A9E; }
+.btn--primary:hover:not(:disabled){ background:var(--accent-press); }
 .btn--primary.btn--done{ background:var(--success-strong); }
-.btn--primary.btn--done:hover:not(:disabled){ background:#046C31; }
+.btn--primary.btn--done:hover:not(:disabled){ background:var(--success-press); }
 
 .btn--secondary{ background:var(--surface); color:var(--text); border-color:var(--border-strong); }
 .btn--secondary:hover:not(:disabled){ background:var(--surface-alt); }
 
-.btn--ghost{ background:transparent; color:var(--text-muted); border-color:var(--border); font-weight:500; padding:7px 12px; }
+.btn--ghost{
+  display:inline-flex; align-items:center; gap:6px;
+  background:transparent; color:var(--text-muted);
+  border-color:var(--border); font-weight:500; padding:7px 12px;
+}
 .btn--ghost:hover{ background:var(--surface-alt); color:var(--text); }
 
 /* Abre el flujo de pasos; solo existe en pantallas pequeñas. */
@@ -321,7 +432,7 @@ body.is-resizing iframe{ pointer-events:none; }
   content:"▶";
   color:var(--text-inverse); font-size:17px; line-height:1; margin-left:3px;
 }
-.node--start:hover .node__dot{ background:#046C31; transform:scale(1.06); }
+.node--start:hover .node__dot{ background:var(--success-press); transform:scale(1.06); }
 
 .node--start .node__label{
   color:var(--text); font-size:13px; font-weight:600; line-height:1.3;
@@ -400,7 +511,7 @@ body.is-resizing iframe{ pointer-events:none; }
 /* Código */
 .markdown-body :not(pre) > code{
   font-family:var(--font-mono); font-size:.88em;
-  background:var(--surface-alt); color:#0F2C4D;
+  background:var(--surface-alt); color:var(--code-inline);
   border:1px solid var(--border);
   border-radius:6px; padding:1px 5px;
   word-break:break-word;
@@ -447,7 +558,7 @@ body.is-resizing iframe{ pointer-events:none; }
   border-radius:var(--radius); padding:14px 16px;
   border:1px solid var(--border-strong); background:var(--surface-alt);
 }
-.notice--error{ border-color:#F2C2C2; background:#FDECEC; }
+.notice--error{ border-color:var(--danger-border); background:var(--danger-bg); }
 .notice pre{
   margin:10px 0 0; padding:8px 10px; overflow-x:auto;
   font-family:var(--font-mono); font-size:12.5px;
@@ -482,6 +593,8 @@ body.is-resizing iframe{ pointer-events:none; }
   body{ overflow:auto; height:auto; min-height:100%; padding-bottom:calc(var(--footer-h, 62px) + 8px); }
 
   .topbar{ position:sticky; top:0; z-index:30; flex-wrap:wrap; row-gap:6px; }
+  /* Aquí la barra ya se reparte en filas, así que caben los dos títulos. */
+  #sectionTitle, .topbar__title .sep{ display:inline; }
 
   /* minmax(0,1fr) y NO 1fr: con `1fr` la columna no puede encoger por debajo
      de su contenido mínimo, así que una línea larga dentro de un bloque de
@@ -502,6 +615,8 @@ body.is-resizing iframe{ pointer-events:none; }
   /* Zonas táctiles cómodas en cualquier pantalla apilada (móvil y tablet). */
   .btn--steps{ display:inline-flex; padding:10px 14px; }
   #resetProgress{ padding:10px 12px; }
+  #resetProgress .btn__text{ display:none; }
+  #resetProgress .btn__icon{ font-size:16px; }
   body.flow-open .btn--steps{ background:var(--accent-strong); color:var(--text-inverse); border-color:var(--accent-strong); }
 
   .flow__nodes{ grid-template-columns:repeat(2, minmax(0,1fr)); gap:40px 32px; }
@@ -527,7 +642,9 @@ body.is-resizing iframe{ pointer-events:none; }
   .topbar__title{ width:100%; font-size:13.5px; gap:6px; }
   #labTitle{ display:none; }              /* en el móvil manda el paso actual */
   .topbar__title .sep{ display:none; }
-  #sectionTitle{ color:var(--text); font-weight:700; min-width:0; }
+  /* Vuelve a mostrarse: arriba se oculta a partir de 1500px, pero en el móvil
+     es lo ÚNICO que queda en la barra, así que aquí manda. */
+  #sectionTitle{ display:block; color:var(--text); font-weight:700; min-width:0; }
 
   .topbar__right{ width:100%; gap:8px; flex-wrap:wrap; }
   /* Los enlaces del markdown en una sola fila deslizable, sin romper la barra. */

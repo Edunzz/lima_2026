@@ -17,6 +17,7 @@ const REPO_FALLBACK = 'Edunzz/lima_2026';
 const STEPS_URL = './steps.md';
 const POLL_MS = 5000;
 const AUTORELOAD_KEY = 'lima2026:autoreload:v1';
+const THEME_KEY = 'lima2026:theme:v1';
 const SPLIT_KEY = 'lima2026:split:v1';
 const SPLIT_DEFAULT = 62;
 const SPLIT_MIN = 28;
@@ -32,6 +33,9 @@ const el = {
   autoReload: $('autoReload'),
   resetProgress: $('resetProgress'),
   topbarLinks: $('topbarLinks'),
+  themeToggle: $('themeToggle'),
+  themeIcon: $('themeIcon'),
+  themeLabel: $('themeLabel'),
   flowToggle: $('flowToggle'),
   flowToggleLabel: $('flowToggleLabel'),
   flowNodes: $('flowNodes'),
@@ -193,6 +197,48 @@ function renderTopbarLinks(links) {
     a.title = 'Abrir ' + link.url + ' en una pestaña nueva';
     el.topbarLinks.appendChild(a);
   });
+}
+
+// ───────────────────────────── Modo claro / oscuro ───────────────────────
+
+const prefiereOscuro = window.matchMedia('(prefers-color-scheme: dark)');
+
+/** El tema que se está viendo ahora mismo: el elegido, o el del sistema. */
+function temaActual() {
+  const elegido = document.documentElement.getAttribute('data-theme');
+  if (elegido === 'dark' || elegido === 'light') return elegido;
+  return prefiereOscuro.matches ? 'dark' : 'light';
+}
+
+function pintarBotonTema() {
+  const oscuro = temaActual() === 'dark';
+  const texto = oscuro ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro';
+  el.themeIcon.textContent = oscuro ? '☀️' : '🌙';
+  el.themeLabel.textContent = texto;
+  el.themeToggle.title = texto;
+  el.themeToggle.setAttribute('aria-pressed', String(oscuro));
+}
+
+function aplicarTema(tema, { persist = true } = {}) {
+  document.documentElement.setAttribute('data-theme', tema);
+  if (persist) {
+    try {
+      localStorage.setItem(THEME_KEY, tema);
+    } catch {
+      /* sin persistencia: el tema dura lo que la pestaña */
+    }
+  }
+  pintarBotonTema();
+}
+
+function initTema() {
+  pintarBotonTema();
+  // Si no se ha elegido nada a mano, se sigue al sistema en caliente.
+  const alCambiarElSistema = () => {
+    if (!document.documentElement.hasAttribute('data-theme')) pintarBotonTema();
+  };
+  if (prefiereOscuro.addEventListener) prefiereOscuro.addEventListener('change', alCambiarElSistema);
+  else if (prefiereOscuro.addListener) prefiereOscuro.addListener(alCambiarElSistema);
 }
 
 // ──────────── Flujo desplegable (solo en pantallas pequeñas) ─────────────
@@ -568,6 +614,9 @@ el.resetProgress.addEventListener('click', () => {
 
 el.autoReload.addEventListener('change', () => setAutoReload(el.autoReload.checked));
 
+el.themeToggle.addEventListener('click', () =>
+  aplicarTema(temaActual() === 'dark' ? 'light' : 'dark'));
+
 el.flowToggle.addEventListener('click', () =>
   setFlowOpen(!document.body.classList.contains('flow-open')));
 
@@ -598,6 +647,7 @@ el.lightbox.addEventListener('click', closeLightbox);
 
 // ───────────────────────────── Arranque ──────────────────────────────────
 
+initTema();
 initSplitter();
 syncFooterSpace();
 window.addEventListener('resize', syncFooterSpace, { passive: true });

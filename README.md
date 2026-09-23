@@ -124,6 +124,8 @@ Detalles útiles:
 - La línea divisoria entre los dos paneles se arrastra con el ratón para dar más
   espacio al flujo o al contenido; doble clic la devuelve a su sitio y el ancho
   elegido se recuerda.
+- **Modo oscuro**: botón 🌙/☀️ en la barra superior. Por defecto sigue la
+  preferencia del sistema; si eliges a mano, se recuerda en ese navegador.
 - **En móvil y tablet** manda el contenido del paso: el flujo se pliega tras el
   botón **☰ Pasos** de la barra superior, y los botones Anterior / Completado /
   Siguiente quedan fijos abajo.

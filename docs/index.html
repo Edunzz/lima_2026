@@ -3,11 +3,21 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
   <title>Guía de laboratorio — Lima 2026</title>
   <meta name="description" content="Guía del laboratorio Lima 2026: observabilidad agéntica con Dynatrace, dtctl y GitHub Copilot.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14' fill='%231496FF'/></svg>">
   <link rel="stylesheet" href="./assets/css/styles.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <script>
+    // Antes de pintar: evita el destello en claro al abrir en modo oscuro.
+    try {
+      var guardado = localStorage.getItem('lima2026:theme:v1');
+      if (guardado === 'dark' || guardado === 'light') {
+        document.documentElement.setAttribute('data-theme', guardado);
+      }
+    } catch (e) { /* sin localStorage: manda la preferencia del sistema */ }
+  </script>
 </head>
 <body>
   <a class="skip-link" href="#panelBody">Saltar al contenido del paso</a>
@@ -30,9 +40,17 @@
       </div>
       <span id="progressLabel" class="muted">0/0</span>
       <label class="switch" title="Recarga la guía automáticamente al editar steps.md">
-        <input type="checkbox" id="autoReload"> <span>🔄 Auto-recarga</span>
+        <input type="checkbox" id="autoReload">
+        <span class="switch__icon" aria-hidden="true">🔄</span><span class="switch__text">Auto-recarga</span>
       </label>
-      <button id="resetProgress" class="btn btn--ghost" type="button">Reiniciar</button>
+      <button id="themeToggle" class="btn btn--icon" type="button"
+              aria-pressed="false" title="Cambiar a modo oscuro">
+        <span class="btn__icon" id="themeIcon" aria-hidden="true">🌙</span>
+        <span class="sr-only" id="themeLabel">Cambiar a modo oscuro</span>
+      </button>
+      <button id="resetProgress" class="btn btn--ghost" type="button" title="Reiniciar el progreso">
+        <span class="btn__icon" aria-hidden="true">↺</span><span class="btn__text">Reiniciar</span>
+      </button>
     </div>
   </header>
 
