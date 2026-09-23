@@ -14,6 +14,10 @@ const REPO_URL = 'https://github.com/Edunzz/lima_2026';
 const STEPS_URL = './steps.md';
 const POLL_MS = 5000;
 const AUTORELOAD_KEY = 'lima2026:autoreload:v1';
+const SPLIT_KEY = 'lima2026:split:v1';
+const SPLIT_DEFAULT = 62;
+const SPLIT_MIN = 28;
+const SPLIT_MAX = 80;
 
 const $ = (id) => document.getElementById(id);
 
@@ -24,9 +28,13 @@ const el = {
   progressLabel: $('progressLabel'),
   autoReload: $('autoReload'),
   resetProgress: $('resetProgress'),
+  topbarLinks: $('topbarLinks'),
   flowNodes: $('flowNodes'),
   flowLinks: $('flowLinks'),
+  layout: document.querySelector('.layout'),
+  splitter: $('splitter'),
   panel: $('panel'),
+  panelBody: $('panelBody'),
   panelTitle: $('panelTitle'),
   panelContent: $('panelContent'),
   panelFooter: $('panelFooter'),
@@ -37,8 +45,8 @@ const el = {
   lightboxImg: $('lightboxImg'),
 };
 
-/** @type {{title:string,start:object|null,preamble:string,sections:Array}} */
-let doc = { title: '', start: null, preamble: '', sections: [] };
+/** @type {{title:string,start:object|null,links:Array,preamble:string,sections:Array}} */
+let doc = { title: '', start: null, links: [], preamble: '', sections: [] };
 let activeId = null;
 let signature = null;
 let pollTimer = null;
@@ -156,6 +164,97 @@ function legacyCopy(text) {
   }
 }
 
+// ──────────────── Enlaces de la barra superior (sección `## Links`) ───────
+
+function renderTopbarLinks(links) {
+  el.topbarLinks.textContent = '';
+  (links || []).forEach((link) => {
+    if (!/^https?:\/\//i.test(link.url)) return;   // solo http(s)
+    const a = document.createElement('a');
+    a.className = 'chip' + (link.highlight ? ' chip--highlight' : '');
+    a.href = link.url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.textContent = link.label;
+    a.title = 'Abrir ' + link.url + ' en una pestaña nueva';
+    el.topbarLinks.appendChild(a);
+  });
+}
+
+// ───────────────────────────── Divisor arrastrable ───────────────────────
+
+function applySplit(pct, { persist = true } = {}) {
+  const value = Math.min(SPLIT_MAX, Math.max(SPLIT_MIN, pct));
+  el.layout.style.setProperty('--split', value + '%');
+  el.splitter.setAttribute('aria-valuenow', String(Math.round(value)));
+  if (persist) {
+    try {
+      localStorage.setItem(SPLIT_KEY, String(value));
+    } catch {
+      /* noop */
+    }
+  }
+  flow.relayout();
+  return value;
+}
+
+function splitFromEvent(ev) {
+  const rect = el.layout.getBoundingClientRect();
+  if (!rect.width) return SPLIT_DEFAULT;
+  return ((ev.clientX - rect.left) / rect.width) * 100;
+}
+
+function initSplitter() {
+  let saved = NaN;
+  try {
+    saved = parseFloat(localStorage.getItem(SPLIT_KEY));
+  } catch {
+    /* noop */
+  }
+  applySplit(Number.isFinite(saved) ? saved : SPLIT_DEFAULT, { persist: false });
+
+  const stacked = () => window.matchMedia('(max-width: 1024px)').matches;
+
+  el.splitter.addEventListener('pointerdown', (ev) => {
+    if (stacked() || ev.button !== 0) return;
+    ev.preventDefault();
+    el.splitter.setPointerCapture(ev.pointerId);
+    document.body.classList.add('is-resizing');
+
+    const onMove = (e) => applySplit(splitFromEvent(e), { persist: false });
+    const onUp = (e) => {
+      el.splitter.removeEventListener('pointermove', onMove);
+      el.splitter.removeEventListener('pointerup', onUp);
+      el.splitter.removeEventListener('pointercancel', onUp);
+      document.body.classList.remove('is-resizing');
+      try {
+        el.splitter.releasePointerCapture(ev.pointerId);
+      } catch {
+        /* el puntero ya se liberó */
+      }
+      applySplit(splitFromEvent(e));
+    };
+
+    el.splitter.addEventListener('pointermove', onMove);
+    el.splitter.addEventListener('pointerup', onUp);
+    el.splitter.addEventListener('pointercancel', onUp);
+  });
+
+  // Doble clic: vuelve al reparto por defecto.
+  el.splitter.addEventListener('dblclick', () => applySplit(SPLIT_DEFAULT));
+
+  // Teclado: el divisor es un separator accesible.
+  el.splitter.addEventListener('keydown', (ev) => {
+    const current = parseFloat(el.splitter.getAttribute('aria-valuenow')) || SPLIT_DEFAULT;
+    if (ev.key === 'ArrowLeft') applySplit(current - 2);
+    else if (ev.key === 'ArrowRight') applySplit(current + 2);
+    else if (ev.key === 'Home' || ev.key === 'Enter') applySplit(SPLIT_DEFAULT);
+    else return;
+    ev.preventDefault();
+    ev.stopPropagation();
+  });
+}
+
 // ───────────────────────────── Lightbox ──────────────────────────────────
 
 function openLightbox(img) {
@@ -204,7 +303,7 @@ function goTo(id, { push = false, scroll = true } = {}) {
     else history.replaceState({ id: section.id }, '', hash);
   }
 
-  if (scroll) el.panel.scrollTop = 0;
+  if (scroll) el.panelBody.scrollTop = 0;
 }
 
 function updateCompleteBtn() {
@@ -236,6 +335,7 @@ function renderDoc(parsed, { keepActive = null } = {}) {
   el.labTitle.textContent = title;
   document.title = title;
 
+  renderTopbarLinks(doc.links);
   flow.render(doc, done);
 
   if (!doc.sections.length) {
@@ -409,4 +509,5 @@ el.lightbox.addEventListener('click', closeLightbox);
 
 // ───────────────────────────── Arranque ──────────────────────────────────
 
+initSplitter();
 load().then(() => setAutoReload(autoReloadDefault(), { persist: false }));

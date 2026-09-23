@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
 </head>
 <body>
-  <a class="skip-link" href="#panel">Saltar al contenido del paso</a>
+  <a class="skip-link" href="#panelBody">Saltar al contenido del paso</a>
 
   <header class="topbar">
     <div class="topbar__title">
@@ -19,7 +19,7 @@
       <span id="sectionTitle" class="muted"></span>
     </div>
     <div class="topbar__right">
-      <span class="badge badge--warning">Dynatrace Playground</span>
+      <nav class="topbar__links" id="topbarLinks" aria-label="Enlaces del laboratorio"></nav>
       <div class="progress" role="progressbar" aria-label="Progreso del laboratorio"
            aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
         <div class="progress__bar" id="progressBar"></div>
@@ -40,10 +40,16 @@
       </div>
     </section>
 
-    <aside class="panel" id="panel" tabindex="-1" aria-live="polite">
-      <h1 class="panel__title" id="panelTitle"></h1>
-      <div class="panel__content markdown-body" id="panelContent">
-        <p class="muted">Cargando <code>steps.md</code>…</p>
+    <div class="splitter" id="splitter" role="separator" aria-orientation="vertical" tabindex="0"
+         aria-label="Ajustar el ancho de los paneles (flechas ← → para mover, doble clic para reiniciar)"
+         aria-valuemin="28" aria-valuemax="80" aria-valuenow="62"></div>
+
+    <aside class="panel" id="panel">
+      <div class="panel__body" id="panelBody" tabindex="-1" aria-live="polite">
+        <h1 class="panel__title" id="panelTitle"></h1>
+        <div class="panel__content markdown-body" id="panelContent">
+          <p class="muted">Cargando <code>steps.md</code>…</p>
+        </div>
       </div>
       <div class="panel__footer" id="panelFooter" hidden>
         <button class="btn btn--secondary" id="prevBtn" type="button">← Anterior</button>
