@@ -15,7 +15,13 @@
  *  4. Los encabezados H3+ quedan dentro del contenido de su sección.
  *  5. Los `#`/`##` dentro de un bloque de código se ignoran (pre-escaneo de fences).
  *  6. El id de sección es el slug del título (usado en el hash de la URL).
+ *  7. Una sección `## Links` (o `## Enlaces`) es RESERVADA: no crea un nodo del
+ *     flujo; sus enlaces se muestran en la barra superior. Un enlace en negrita
+ *     (`**[texto](url)**`) se destaca en ámbar.
  */
+
+/** Títulos de sección reservados que no crean nodo. */
+const LINKS_SECTION = new Set(['links', 'enlaces']);
 
 /** Slug estable: minúsculas, sin acentos, sin signos, espacios → «-». */
 export function slugify(text) {
@@ -53,6 +59,23 @@ function maskFences(lines) {
   return masked;
 }
 
+/**
+ * Extrae los enlaces markdown de un bloque de texto, en orden.
+ * Ignora imágenes (`![…](…)`) y cualquier esquema que no sea http/https.
+ * @returns {Array<{label:string,url:string,highlight:boolean}>}
+ */
+export function extractLinks(body) {
+  const re = /(!)?(\*\*)?\[([^\]\n]+)\]\(\s*([^)\s]+)(?:\s+"[^"]*")?\s*\)(\*\*)?/g;
+  const links = [];
+  let m;
+  while ((m = re.exec(body)) !== null) {
+    if (m[1]) continue;                                   // es una imagen
+    if (!/^https?:\/\//i.test(m[4])) continue;            // solo http(s)
+    links.push({ label: m[3].trim(), url: m[4], highlight: !!(m[2] && m[5]) });
+  }
+  return links;
+}
+
 /** Quita líneas en blanco al principio y al final, conservando el interior. */
 function trimBlankLines(lines) {
   let a = 0;
@@ -64,7 +87,9 @@ function trimBlankLines(lines) {
 
 /**
  * @param {string} markdown contenido de steps.md
- * @returns {{title:string, start:{label:string}|null, preamble:string,
+ * @returns {{title:string, start:{label:string}|null,
+ *            links:Array<{label:string,url:string,highlight:boolean}>,
+ *            preamble:string,
  *            sections:Array<{id:string,title:string,body:string}>}}
  */
 export function parseSteps(markdown) {
@@ -108,11 +133,24 @@ export function parseSteps(markdown) {
   const used = new Map();
   let preambleLines = [];
   let current = null;
+  let linksLines = null;
+
+  const closeCurrent = () => {
+    if (!current) return;
+    if (current.reserved === 'links') linksLines = current.bodyLines;
+    else sections.push(current);
+  };
 
   for (let i = cursor; i < lines.length; i++) {
     if (isH2(i)) {
-      if (current) sections.push(current);
+      closeCurrent();
       const text = headingText(lines[i]);
+
+      // Sección reservada de enlaces: no es un paso del flujo.
+      if (LINKS_SECTION.has(slugify(text))) {
+        current = { reserved: 'links', bodyLines: [] };
+        continue;
+      }
       let id = slugify(text);
       if (used.has(id)) {
         const n = used.get(id) + 1;
@@ -128,13 +166,15 @@ export function parseSteps(markdown) {
       preambleLines.push(lines[i]);
     }
   }
-  if (current) sections.push(current);
+  closeCurrent();
 
   const preamble = trimBlankLines(preambleLines);
+  const links = linksLines ? extractLinks(trimBlankLines(linksLines)) : [];
 
   return {
     title,
     start,
+    links,
     preamble,
     sections: sections.map((s) => ({ id: s.id, title: s.title, body: trimBlankLines(s.bodyLines) })),
   };

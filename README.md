@@ -99,7 +99,11 @@ No hay que tocar HTML ni JavaScript.
 
 ```markdown
 # {título del laboratorio}
-inicio: {texto del botón/círculo verde de inicio}   ← línea OPCIONAL
+inicio: {texto de la bolita verde de inicio}   ← línea OPCIONAL
+
+## Links                                       ← sección OPCIONAL y RESERVADA
+- **[Enlace destacado](https://…)**
+- [Otro enlace](https://…)
 
 ## {título de la sección 1}
 {contenido markdown libre: párrafos, listas, tablas, código, imágenes}
@@ -112,7 +116,13 @@ Detalles útiles:
 
 - Los `###` y menores quedan **dentro** del paso; no crean nodos.
 - Un `##` dentro de un bloque de código **no** crea un nodo.
-- Si borras la línea `inicio:`, el círculo verde simplemente desaparece.
+- Si borras la línea `inicio:`, la bolita verde simplemente desaparece.
+- **`## Links`** (o `## Enlaces`) es una sección reservada: **no** crea un paso.
+  Sus enlaces salen en la barra superior y se abren en una pestaña nueva. El que
+  pongas en **negrita** se resalta en ámbar (así está el Playground).
+- La línea divisoria entre los dos paneles se arrastra con el ratón para dar más
+  espacio al flujo o al contenido; doble clic la devuelve a su sitio y el ancho
+  elegido se recuerda.
 - Imágenes: déjalas en `docs/assets/img/` y referencia
   `![alt](./assets/img/mi-captura.png)`. Se ven en grande al hacer clic.
 - El progreso de cada persona se guarda en su navegador (`localStorage`).

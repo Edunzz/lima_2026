@@ -136,13 +136,20 @@ añadir o cambiar pasos. La gramática es:
 
 ```markdown
 # {título del laboratorio}
-inicio: {texto del nodo verde inicial}   ← línea OPCIONAL
+inicio: {texto de la bolita verde inicial}   ← línea OPCIONAL
+
+## Links                                      ← sección OPCIONAL y RESERVADA
+- **[Dynatrace Playground](https://playground.apps.dynatrace.com/)**
+- [Otro enlace](https://…)
 
 ## {título del paso}
 {markdown libre: párrafos, listas, tablas, código, imágenes}
 ```
 
 - Un `##` = un nodo del flujo.
+- **Excepción:** `## Links` (o `## Enlaces`) es una sección reservada que **no**
+  crea nodo; sus enlaces se muestran en la barra superior de la guía y se abren
+  en una pestaña nueva. Un enlace en **negrita** se resalta en ámbar.
 - Los `##` dentro de un bloque de código se ignoran.
 - Las imágenes van en `docs/assets/img/` y se referencian como
   `![alt](./assets/img/captura.png)`.

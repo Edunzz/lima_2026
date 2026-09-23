@@ -1,6 +1,15 @@
 # Guía de laboratorio — Lima 2026: Observabilidad Agéntica con Dynatrace
 inicio: Ingresar al repositorio del lab
 
+## Links
+
+Estos enlaces se muestran en la barra superior y se abren en una pestaña nueva.
+El que va en **negrita** se resalta en ámbar.
+
+- **[Dynatrace Playground](https://playground.apps.dynatrace.com/)**
+- [Repositorio del lab](https://github.com/Edunzz/lima_2026)
+- [Documentación de dtctl](https://dynatrace-oss.github.io/dtctl)
+
 ## Antes de empezar
 
 **Nivel:** Principiante · **Duración estimada:** 90–120 min
