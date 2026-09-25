@@ -7,6 +7,7 @@ Estos enlaces se muestran en la barra superior y se abren en una pestaña nueva.
 El que va en **negrita** se resalta en ámbar.
 
 - **[Dynatrace Playground](https://playground.apps.dynatrace.com/)**
+- **[Registro Playground](https://www.dynatrace.com/signup/playground/)**
 - [Repositorio del lab]({{repo_url}})
 - [Documentación de dtctl](https://dynatrace-oss.github.io/dtctl)
 
